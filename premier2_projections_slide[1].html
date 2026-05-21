@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Premier II — Projections</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{width:1280px;height:720px;overflow:hidden;background:#fff;font-family:'DM Sans',sans-serif;color:#1a1a2e;}
+.slide{width:1280px;height:720px;display:grid;grid-template-columns:260px 1fr;grid-template-rows:1fr;}
+
+.left{background:#f8f7f4;border-right:1px solid #e8e4dc;padding:40px 30px;display:flex;flex-direction:column;justify-content:space-between;}
+.eyebrow{font-size:9px;font-weight:500;letter-spacing:0.2em;text-transform:uppercase;color:#9ca3af;margin-bottom:10px;}
+.title{font-family:'DM Serif Display',serif;font-size:28px;line-height:1.2;color:#1a1a2e;margin-bottom:18px;}
+.title em{font-style:italic;color:#2563eb;}
+
+.scen-stack{display:flex;flex-direction:column;gap:8px;}
+.scen{border-radius:8px;padding:11px 13px;border:0.5px solid #e8e4dc;}
+.scen.base{border-color:#93c5fd;background:#f0f6ff;}
+.scen.stretch{border-color:#6ee7b7;background:#f0fdf4;}
+.scen.lightning{border-color:#e8e4dc;background:#fff;}
+.scen-lbl{font-size:8px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:3px;}
+.scen-lbl.b{color:#2563eb;} .scen-lbl.s{color:#059669;} .scen-lbl.l{color:#9ca3af;}
+.scen-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px;}
+.scen-val{font-family:'DM Serif Display',serif;font-size:24px;}
+.scen-val.b{color:#2563eb;} .scen-val.s{color:#059669;} .scen-val.l{color:#9ca3af;}
+.scen-prob{font-size:10px;color:#6b7280;}
+.scen-prob.b{color:#2563eb;font-weight:500;} .scen-prob.s{color:#059669;font-weight:500;}
+.scen-desc{font-size:9px;color:#6b7280;line-height:1.45;}
+
+.foot{font-size:8px;color:#9ca3af;line-height:1.55;}
+
+.right{padding:32px 40px 24px;display:flex;flex-direction:column;}
+.rh{margin-bottom:10px;}
+.rt{font-size:10px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;color:#6b7280;margin-bottom:2px;}
+.rs{font-size:10px;color:#9ca3af;}
+
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;flex:1;min-height:0;}
+.chart-block{display:flex;flex-direction:column;}
+.chart-lbl{font-size:9px;font-weight:500;color:#6b7280;margin-bottom:5px;padding-bottom:5px;border-bottom:0.5px solid #e8e4dc;}
+.chart-lbl span{font-weight:400;color:#9ca3af;}
+.chart-wrap{flex:1;position:relative;min-height:0;}
+
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:10px;}
+.stat{background:#f8f7f4;border-radius:6px;padding:6px 8px;text-align:center;}
+.stat-lbl{font-size:8px;color:#9ca3af;margin-bottom:1px;}
+.stat-val{font-size:14px;font-weight:500;}
+.sv-b{color:#2563eb;} .sv-g{color:#059669;} .sv-n{color:#374151;}
+
+.leg{display:flex;gap:12px;margin-top:8px;font-size:9px;color:#6b7280;flex-wrap:wrap;}
+.leg span{display:flex;align-items:center;gap:4px;}
+.ld{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div class="slide">
+
+  <div class="left">
+    <div>
+      <div class="eyebrow">Premier II · Return projections</div>
+      <div class="title">Three<br>honest<br><em>scenarios.</em></div>
+      <div class="scen-stack">
+        <div class="scen base">
+          <div class="scen-lbl b">The plan</div>
+          <div class="scen-row">
+            <div class="scen-val b">3.1x</div>
+            <div class="scen-prob b" id="p31r">—</div>
+          </div>
+          <div class="scen-desc">Good FoF selection · one satellite that works · no extraordinary required · realistic 2020 Carta vintage</div>
+        </div>
+        <div class="scen stretch">
+          <div class="scen-lbl s">Possible</div>
+          <div class="scen-row">
+            <div class="scen-val s">4.5x</div>
+            <div class="scen-prob s" id="p45r">—</div>
+          </div>
+          <div class="scen-desc">Strong FoF · good exit macro · one extraordinary satellite at 25x+ entered early · all three simultaneously</div>
+        </div>
+        <div class="scen lightning">
+          <div class="scen-lbl l">The lightning</div>
+          <div class="scen-row">
+            <div class="scen-val l">5x+</div>
+            <div class="scen-prob" id="p5o">—</div>
+          </div>
+          <div class="scen-desc">7/7/6 mix · best vintage ever · great macro · one satellite at 30x+ · P(7/7/6 alone): ~0.05–0.5%</div>
+        </div>
+      </div>
+    </div>
+    <div class="foot">50,000 simulations each · Carta Q4 2025 $1M–$10M · two-factor satellite model · net Premier II 1%/10% · Illustrative only · Not a forecast</div>
+  </div>
+
+  <div class="right">
+    <div class="rh">
+      <div class="rt">Blended TVPI distribution — realistic vs lightning scenario</div>
+      <div class="rs">Both charts: 70% FoF Monte Carlo + 30% satellite two-factor model · modest selection edge · same y-axis scale</div>
+    </div>
+
+    <div class="charts-row">
+      <div class="chart-block">
+        <div class="chart-lbl">Realistic <span>· 3/5/10/2 mix · 2020 Carta · P(this): base case</span></div>
+        <div class="chart-wrap"><canvas id="rChart" role="img" aria-label="Realistic scenario distribution"></canvas></div>
+        <div class="stats-row">
+          <div class="stat"><div class="stat-lbl">Median</div><div class="stat-val sv-n" id="rMed">—</div></div>
+          <div class="stat"><div class="stat-lbl">Mean</div><div class="stat-val sv-n" id="rMean">—</div></div>
+          <div class="stat"><div class="stat-lbl">P(≥3.1x)</div><div class="stat-val sv-b" id="rP3">—</div></div>
+          <div class="stat"><div class="stat-lbl">P(≥4.5x)</div><div class="stat-val sv-g" id="rP4">—</div></div>
+          <div class="stat"><div class="stat-lbl">P(≥5x)</div><div class="stat-val sv-g" id="rP5">—</div></div>
+        </div>
+      </div>
+      <div class="chart-block">
+        <div class="chart-lbl">Lightning <span>· 7/7/6 mix · 2017 Carta best vintage · P(selection): ~0.05–0.5%</span></div>
+        <div class="chart-wrap"><canvas id="oChart" role="img" aria-label="Lightning scenario distribution"></canvas></div>
+        <div class="stats-row">
+          <div class="stat"><div class="stat-lbl">Median</div><div class="stat-val sv-n" id="oMed">—</div></div>
+          <div class="stat"><div class="stat-lbl">Mean</div><div class="stat-val sv-n" id="oMean">—</div></div>
+          <div class="stat"><div class="stat-lbl">P(≥3.1x)</div><div class="stat-val sv-b" id="oP3">—</div></div>
+          <div class="stat"><div class="stat-lbl">P(≥4.5x)</div><div class="stat-val sv-g" id="oP4">—</div></div>
+          <div class="stat"><div class="stat-lbl">P(≥5x)</div><div class="stat-val sv-g" id="oP5">—</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="leg">
+      <span><span class="ld" style="background:#bfdbfe"></span>Below 3.1x — most likely</span>
+      <span><span class="ld" style="background:#2563eb"></span>Plan to possible (3.1x–4.5x)</span>
+      <span><span class="ld" style="background:#059669"></span>Above 4.5x — exceptional</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function lu(lo,hi){if(lo<=0)lo=0;if(hi<=lo)hi=lo+0.01;if(lo===0)return Math.random()*hi;return Math.exp(Math.random()*(Math.log(hi)-Math.log(lo))+Math.log(lo));}
+
+const RATES=[0.30,0.20,0.20,0.18,0.12];
+const SAT_MID=[0.40,1.35,2.95,7.60,19.50];
+
+function drawMkt(){
+  const u=Math.random();
+  if(u<0.05)return lu(0.05,0.3);
+  if(u<0.20)return lu(0.3,0.7);
+  if(u<0.85)return lu(0.7,1.5);
+  if(u<0.97)return lu(1.5,2.5);
+  return lu(2.5,4.0);
+}
+function drawSat(mkt){
+  const r=Math.random();let c=0;let bkt=0;
+  const lo=[0,0.3,0.5,0.8,1.0],hi=[1.5,2.5,8,20,50];
+  for(let k=0;k<RATES.length;k++){c+=RATES[k];if(r<=c){bkt=k;break;}}
+  const gross=lu(lo[bkt]*SAT_MID[bkt],hi[bkt]);
+  const adj=Math.max(gross*mkt,0);
+  return adj>1?adj-(adj-1)*0.10-0.05:Math.max(adj-0.05,0);
+}
+function drawFoF(mix,vin){
+  const tot=mix.td+mix.tq+mix.av+mix.ba;let s=0;
+  for(let j=0;j<mix.td;j++)s+=lu(vin.tq,vin.td*1.2);
+  for(let j=0;j<mix.tq;j++)s+=lu(vin.av,vin.tq*1.15);
+  for(let j=0;j<mix.av;j++)s+=lu(Math.max(vin.av*0.6,0.3),vin.av*1.2);
+  for(let j=0;j<mix.ba;j++)s+=lu(Math.max(vin.ba*0.3,0.1),vin.ba*1.1);
+  const gross=s/tot;
+  return Math.max(gross-(gross>1?(gross-1)*0.10:0)-0.10,0);
+}
+
+const REAL_MIX={td:3,tq:5,av:10,ba:2};
+const OPT_MIX={td:7,tq:7,av:6,ba:0};
+const REAL_VIN={td:3.08,tq:2.04,av:1.14,ba:0.92};
+const OPT_VIN={td:5.54,tq:3.18,av:2.06,ba:1.41};
+const N=50000;
+
+function simulate(mix,vin){
+  const res=[];
+  for(let i=0;i<N;i++){
+    const fn=drawFoF(mix,vin);
+    const mkt=drawMkt();
+    let sat=0;for(let j=0;j<6;j++)sat+=drawSat(mkt);
+    res.push(fn*0.70+(sat/6)*0.30);
+  }
+  return res.sort((a,b)=>a-b);
+}
+
+const rRes=simulate(REAL_MIX,REAL_VIN);
+const oRes=simulate(OPT_MIX,OPT_VIN);
+
+function pct(res,t){return(res.filter(r=>r>=t).length/N*100).toFixed(0)+'%';}
+function med(res){return res[Math.floor(N/2)].toFixed(2)+'x';}
+function mean(res){return(res.reduce((a,b)=>a+b,0)/N).toFixed(2)+'x';}
+
+// Fill stats
+document.getElementById('rMed').textContent=med(rRes);
+document.getElementById('rMean').textContent=mean(rRes);
+document.getElementById('rP3').textContent=pct(rRes,3.1);
+document.getElementById('rP4').textContent=pct(rRes,4.5);
+document.getElementById('rP5').textContent=pct(rRes,5.0);
+document.getElementById('oMed').textContent=med(oRes);
+document.getElementById('oMean').textContent=mean(oRes);
+document.getElementById('oP3').textContent=pct(oRes,3.1);
+document.getElementById('oP4').textContent=pct(oRes,4.5);
+document.getElementById('oP5').textContent=pct(oRes,5.0);
+
+// Left panel probs from realistic
+document.getElementById('p31r').textContent=pct(rRes,3.1)+' (realistic)';
+document.getElementById('p45r').textContent=pct(oRes,4.5)+' (lightning scenario)';
+document.getElementById('p5o').textContent='≥'+pct(oRes,5.0)+' (lightning scenario)';
+
+// Charts
+const BKTS=[0,1,1.5,2,2.5,3,3.5,4,4.5,5,5.7,6,8,15];
+const LBLS=['0–1x','1–1.5x','1.5–2x','2–2.5x','2.5–3x','3–3.5x','3.5–4x','4–4.5x','4.5–5x','5–5.7x','5.7–6x','6–8x','8x+'];
+
+function mkBars(res){
+  const d=[];
+  for(let i=0;i<BKTS.length-1;i++)d.push(+(res.filter(r=>r>=BKTS[i]&&r<BKTS[i+1]).length/N*100).toFixed(1));
+  d.push(+(res.filter(r=>r>=15).length/N*100).toFixed(1));
+  return d;
+}
+
+// Compute max Y for same scale
+const rD=mkBars(rRes),oD=mkBars(oRes);
+const maxY=Math.ceil(Math.max(...rD,...oD)/5)*5+5;
+
+function mkChart(id,data){
+  const cols=data.map((_,i)=>BKTS[i]>=4.5?'#059669':BKTS[i]>=3.1?'#2563eb':'#bfdbfe');
+  new Chart(document.getElementById(id),{type:'bar',
+    data:{labels:LBLS,datasets:[{data,backgroundColor:cols,borderWidth:0,borderRadius:3,barPercentage:0.82,categoryPercentage:0.82}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw.toFixed(1)}%`}}},
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:8},color:'#9ca3af',maxRotation:30}},
+        y:{max:maxY,grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:8},color:'#9ca3af',callback:v=>v+'%'}}
+      }
+    }
+  });
+}
+
+mkChart('rChart',rD);
+mkChart('oChart',oD);
+</script>
+</body>
+</html>

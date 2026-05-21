@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Premier II — Return Simulator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f5f5f0;color:#1a1a2e;min-height:100vh;padding:28px 20px;}
+.wrap{max-width:980px;margin:0 auto;}
+h1{font-size:21px;font-weight:500;margin-bottom:3px;}
+.sub{font-size:12px;color:#6b7280;margin-bottom:20px;}
+.tabs{display:flex;border:0.5px solid #ddd;border-radius:7px;overflow:hidden;width:fit-content;margin-bottom:20px;}
+.tab{padding:7px 18px;font-size:12px;cursor:pointer;background:#fff;border:none;color:#6b7280;}
+.tab.on{background:#1a1a2e;color:#fff;}
+.sg{display:grid;gap:8px;margin-bottom:16px;}
+.g3{grid-template-columns:repeat(3,1fr);}
+.g4{grid-template-columns:repeat(4,1fr);}
+.g5{grid-template-columns:repeat(5,1fr);}
+.stat{background:#fff;border:0.5px solid #ddd;border-radius:9px;padding:12px;text-align:center;}
+.stat.hi{border-color:#0066cc;background:#f0f6ff;}
+.stat.warn{border-color:#e8a000;background:#fffbf0;}
+.slbl{font-size:10px;color:#6b7280;margin-bottom:3px;}
+.sval{font-size:20px;font-weight:500;}
+.panels{display:grid;gap:14px;margin-bottom:14px;}
+.p2{grid-template-columns:1fr 1fr;}
+.p3{grid-template-columns:1fr 1fr 1fr;}
+.p1{grid-template-columns:1fr;}
+.card{background:#fff;border:0.5px solid #ddd;border-radius:11px;padding:16px;}
+.clbl{font-size:9px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:#0066cc;margin-bottom:12px;}
+.sr{margin-bottom:10px;}
+.sh{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;}
+.sh span:first-child{color:#6b7280;}
+input[type=range]{width:100%;height:4px;border-radius:2px;background:#ddd;outline:none;-webkit-appearance:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:#0066cc;cursor:pointer;}
+input[type=range].red::-webkit-slider-thumb{background:#c0392b;}
+input[type=range]:disabled{opacity:0.35;cursor:default;}
+select{width:100%;font-size:11px;padding:5px 7px;border:0.5px solid #ddd;border-radius:5px;background:#fff;color:#1a1a2e;cursor:pointer;outline:none;}
+.ib{margin-top:8px;padding:7px 9px;background:#f5f5f0;border-radius:6px;font-size:10px;color:#6b7280;line-height:1.5;}
+.notice{font-size:10px;color:#92510a;background:#fffbf0;border:0.5px solid #e8c84a;border-radius:6px;padding:7px 10px;margin-top:8px;line-height:1.5;}
+.cc{background:#fff;border:0.5px solid #ddd;border-radius:11px;padding:16px;margin-bottom:14px;}
+.ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.ct{font-size:9px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:#6b7280;}
+button{font-size:11px;padding:6px 14px;border:0.5px solid #ddd;border-radius:5px;background:#fff;color:#1a1a2e;cursor:pointer;}
+button:hover{background:#f5f5f0;}
+.pg{display:grid;gap:7px;margin-top:12px;}
+.pg6{grid-template-columns:repeat(6,1fr);}
+.pg5{grid-template-columns:repeat(5,1fr);}
+.pg4{grid-template-columns:repeat(4,1fr);}
+.pc{text-align:center;padding:8px 4px;background:#f5f5f0;border-radius:7px;}
+.pt{font-size:9px;color:#6b7280;margin-bottom:2px;}
+.pv{font-size:17px;font-weight:500;}
+.leg{display:flex;gap:12px;margin-top:8px;font-size:10px;color:#6b7280;flex-wrap:wrap;}
+.leg span{display:flex;align-items:center;gap:4px;}
+.ld{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
+.dc{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.br{display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #f0ede8;font-size:11px;}
+.br:last-child{border-bottom:none;}
+
+/* Scenario tree */
+.tree{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px;}
+.tnode{border-radius:9px;padding:12px 10px;text-align:center;border:0.5px solid #ddd;}
+.tnode.bad{background:#fff5f5;border-color:#fca5a5;}
+.tnode.meh{background:#f5f5f0;border-color:#ddd;}
+.tnode.good{background:#f0f6ff;border-color:#93c5fd;}
+.tnode.great{background:#f0faf5;border-color:#6ee7b7;}
+.tprob{font-size:18px;font-weight:600;margin-bottom:4px;}
+.tlbl{font-size:10px;font-weight:600;margin-bottom:6px;letter-spacing:.05em;}
+.tdesc{font-size:10px;color:#6b7280;line-height:1.4;margin-bottom:6px;}
+.tblend{font-size:12px;font-weight:600;}
+
+.foot{font-size:10px;color:#9ca3af;line-height:1.7;margin-top:14px;padding:10px 14px;background:#fff;border:0.5px solid #ddd;border-radius:9px;}
+.conf{text-align:center;font-size:9px;color:#9ca3af;margin-top:16px;letter-spacing:.1em;}
+.hid{display:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Premier II — Return Simulator</h1>
+<p class="sub">Carta Q4 2025 $1M–$10M benchmarks · For qualified LP use only</p>
+
+<div class="tabs">
+  <button class="tab on" onclick="sw('fof')">FoF sleeve (Monte Carlo)</button>
+  <button class="tab" onclick="sw('binary')">Satellite — binary scenarios</button>
+  <button class="tab" onclick="sw('twofactor')">Satellite — two-factor model</button>
+  <button class="tab" onclick="sw('bmark')">Carta benchmarks</button>
+</div>
+
+<!-- FOF MONTE CARLO -->
+<div id="v-fof">
+  <div class="sg g5">
+    <div class="stat"><div class="slbl">FoF median net TVPI</div><div class="sval" id="fMed">—</div></div>
+    <div class="stat"><div class="slbl">FoF mean net TVPI</div><div class="sval" id="fMean">—</div></div>
+    <div class="stat"><div class="slbl">P(≥3x net)</div><div class="sval" id="fP3">—</div></div>
+    <div class="stat"><div class="slbl">P(≥2x net)</div><div class="sval" id="fP2">—</div></div>
+    <div class="stat"><div class="slbl">7/7/6 ceiling</div><div class="sval" id="fCeil">—</div></div>
+  </div>
+  <div class="notice" style="margin-bottom:14px">The FoF sleeve — 20 funds, ~500 underlying companies — is genuinely diversified. Monte Carlo is valid here. The law of large numbers applies.</div>
+  <div class="panels p2">
+    <div class="card">
+      <div class="clbl">Manager mix</div>
+      <div class="sr"><div class="sh"><span>Top decile funds</span><span id="fTDv">3</span></div><input type="range" min="0" max="10" value="3" id="fTD" oninput="onF()"></div>
+      <div class="sr"><div class="sh"><span>Top quartile funds</span><span id="fTQv">5</span></div><input type="range" min="0" max="12" value="5" id="fTQ" oninput="onF()"></div>
+      <div class="sr"><div class="sh"><span>Average funds</span><span id="fAVv">10</span></div><input type="range" min="0" max="15" value="10" id="fAV" oninput="onF()"></div>
+      <div class="sr"><div class="sh"><span style="color:#c0392b">Below average (25th pct)</span><span id="fBAv">2</span></div><input type="range" min="0" max="10" value="2" id="fBA" oninput="onF()" class="red"></div>
+      <div class="sr" style="margin-top:10px">
+        <select id="fVIN" onchange="onFvin()">
+          <option value="opt">Optimistic — 2017 Carta (90th:5.54x · 75th:3.18x · 50th:2.06x · 25th:1.41x)</option>
+          <option value="rea" selected>Realistic — 2020 Carta (90th:3.08x · 75th:2.04x · 50th:1.14x · 25th:0.92x)</option>
+          <option value="con">Conservative — 2021 Carta (90th:1.95x · 75th:1.35x · 50th:1.03x · 25th:0.84x)</option>
+          <option value="p1">Premier I observed mix (3/5/10/1) — 2020 Carta — modelled scenario</option>
+        </select>
+      </div>
+      <div class="sr" style="margin-top:10px">
+        <select id="fFee" onchange="onF()">
+          <option value="none">No FoF fees (Premier I model)</option>
+          <option value="pre" selected>Premier II 1%/10%</option>
+          <option value="std">Standard FoF 1.5%/15%</option>
+        </select>
+      </div>
+      <div class="ib">Total: <strong id="fTot">20</strong> · Weighted gross: <strong id="fGrs">—</strong> · Net: <strong id="fNetCalc">—</strong> · 7/7/6 ceiling: <strong id="f776">—</strong></div>
+    </div>
+    <div class="card">
+      <div class="clbl">FoF net TVPI distribution — 20,000 simulations</div>
+      <div style="position:relative;height:220px"><canvas id="fCht"></canvas></div>
+      <div class="leg"><span><span class="ld" style="background:rgba(24,95,165,0.3)"></span>Below 2x</span><span><span class="ld" style="background:#185FA5"></span>2x–3x</span><span><span class="ld" style="background:#1D9E75"></span>Above 3x</span></div>
+      <div class="pg pg6" id="fProb" style="margin-top:10px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BINARY SCENARIOS -->
+<div id="v-binary" class="hid">
+  <div class="notice" style="margin-bottom:14px">Six direct positions is not a diversified portfolio in any statistical sense. Instead of a Monte Carlo distribution, this tab shows the four discrete scenarios that actually occur. Probabilities are calibrated to Series A/B entry with Premier's selection edge — not generic venture base rates.</div>
+  <div class="panels p2">
+    <div class="card">
+      <div class="clbl">FoF sleeve assumption</div>
+      <div class="sr">
+        <select id="bVIN" onchange="updateBinary()">
+          <option value="opt">Optimistic — 2017 Carta FoF net ~3.30x</option>
+          <option value="rea" selected>Realistic — 2020 Carta FoF net ~1.10x</option>
+          <option value="con">Conservative — 2021 Carta FoF net ~0.95x</option>
+        </select>
+      </div>
+      <div class="ib">FoF net (3/5/10/2 mix after 1%/10%): <strong id="bFof">—</strong> · FoF contribution to blended (×70%): <strong id="bFofC">—</strong></div>
+    </div>
+    <div class="card">
+      <div class="clbl">Satellite sleeve — 6 positions · Series A/B entry</div>
+      <div class="sr"><div class="sh"><span>Selection edge</span></div>
+        <select id="bEdg" onchange="updateBinary()">
+          <option value="none">No edge — Series A/B base rates</option>
+          <option value="mod" selected>Modest — Premier GP relationships</option>
+          <option value="str">Strong — highly validated relationships</option>
+        </select>
+      </div>
+      <div class="ib" id="bRates">—</div>
+    </div>
+  </div>
+
+  <div class="cc">
+    <div class="ch"><span class="ct">Four scenarios — what actually happens with 6 direct positions</span></div>
+    <div class="tree" id="bTree"></div>
+  </div>
+
+  <div class="cc">
+    <div class="ch"><span class="ct">Blended TVPI by scenario (70% FoF + 30% satellite)</span></div>
+    <div style="position:relative;height:200px"><canvas id="bCht"></canvas></div>
+    <div class="notice" style="margin-top:10px">In <strong id="bDragPct">—</strong> of outcomes the satellite sleeve reduces blended returns below what the FoF sleeve would have delivered alone. The satellite only improves blended in <strong id="bLiftPct">—</strong> of outcomes — and transforms it only in <strong id="bGreatPct">—</strong>.</div>
+  </div>
+</div>
+
+<!-- TWO-FACTOR MODEL -->
+<div id="v-twofactor" class="hid">
+  <div class="notice" style="margin-bottom:14px">Binary scenarios assume independence between positions. In reality all 6 positions share the same macro environment, the same AI market cycle, and the same exit window. The two-factor model draws one market factor (correlated across all positions) and one company-specific factor (independent). This captures the real reason 6 positions give little diversification — they are all exposed to the same macro bet.</div>
+  <div class="panels p2">
+    <div class="card">
+      <div class="clbl">FoF sleeve</div>
+      <div class="sr"><div class="sh"><span>Top decile</span><span id="tTDv">3</span></div><input type="range" min="0" max="10" value="3" id="tTD" oninput="onTF()"></div>
+      <div class="sr"><div class="sh"><span>Top quartile</span><span id="tTQv">5</span></div><input type="range" min="0" max="12" value="5" id="tTQ" oninput="onTF()"></div>
+      <div class="sr"><div class="sh"><span>Average</span><span id="tAVv">10</span></div><input type="range" min="0" max="15" value="10" id="tAV" oninput="onTF()"></div>
+      <div class="sr"><div class="sh"><span style="color:#c0392b">Below average</span><span id="tBAv">2</span></div><input type="range" min="0" max="10" value="2" id="tBA" oninput="onTF()" class="red"></div>
+      <div class="sr" style="margin-top:8px">
+        <select id="tVIN" onchange="onTFvin()">
+          <option value="opt">Optimistic — 2017 Carta</option>
+          <option value="rea" selected>Realistic — 2020 Carta</option>
+          <option value="con">Conservative — 2021 Carta</option>
+          <option value="p1">Premier I observed mix</option>
+        </select>
+      </div>
+    </div>
+    <div class="card">
+      <div class="clbl">Satellite sleeve — two-factor assumptions</div>
+      <div class="sr"><div class="sh"><span>Market factor volatility</span><span id="tMktv">Medium</span></div>
+        <input type="range" min="1" max="3" value="2" id="tMkt" oninput="onTF()">
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:#9ca3af;margin-top:2px"><span>Low</span><span>Medium</span><span>High</span></div>
+      </div>
+      <div class="sr"><div class="sh"><span>Company-specific edge</span></div>
+        <select id="tEdg" onchange="onTF()">
+          <option value="none">None — pure base rates</option>
+          <option value="mod" selected>Modest — Premier GP relationships</option>
+          <option value="str">Strong — highly validated (hypothetical)</option>
+        </select>
+      </div>
+      <div class="notice">Market factor is drawn once per simulation and applied to all 6 positions. A bad market year hurts all positions simultaneously. A great exit environment helps all simultaneously. This is why 6 positions behave more like 1-2 effective bets than 6 independent ones.</div>
+      <div class="ib">Effective independent bets: <strong id="tEffBets">—</strong> (adjusted for correlation)</div>
+    </div>
+  </div>
+
+  <div class="sg g5" style="margin-bottom:14px">
+    <div class="stat"><div class="slbl">Blended median</div><div class="sval" id="tMed">—</div></div>
+    <div class="stat"><div class="slbl">Blended mean</div><div class="sval" id="tMean">—</div></div>
+    <div class="stat"><div class="slbl">P(≥3.1x)</div><div class="sval" id="tPb">—</div></div>
+    <div class="stat"><div class="slbl">P(≥5x)</div><div class="sval" id="tP5">—</div></div>
+    <div class="stat warn"><div class="slbl">Correlation cost (median)</div><div class="sval" id="tCorrCost">—</div></div>
+  </div>
+
+  <div class="cc">
+    <div class="ch"><span class="ct">Two-factor model — 20,000 simulations · dark = correlated · light = independent (no correlation)</span><button onclick="runTF()">Run now</button></div>
+    <div class="dc">
+      <div><p style="font-size:10px;color:#6b7280;margin-bottom:6px">Blended TVPI — two-factor (dark) vs independent (light)</p><div style="position:relative;height:180px"><canvas id="tCht"></canvas></div></div>
+      <div><p style="font-size:10px;color:#6b7280;margin-bottom:6px">FoF sleeve net TVPI (for reference)</p><div style="position:relative;height:180px"><canvas id="tFCht"></canvas></div></div>
+    </div>
+    <div class="leg">
+      <span><span class="ld" style="background:rgba(24,95,165,0.3)"></span>Below FoF net</span>
+      <span><span class="ld" style="background:#185FA5"></span>Above FoF net</span>
+      <span><span class="ld" style="background:#1D9E75"></span>Above 5x</span>
+    </div>
+    <div class="pg pg6" id="tProb"></div>
+  </div>
+</div>
+
+<!-- BENCHMARKS -->
+<div id="v-bmark" class="hid">
+  <div class="panels p2">
+    <div class="card">
+      <div class="clbl">Carta Q4 2025 · $1M–$10M · net TVPI (after underlying 2%/20% fees)</div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px">
+        <thead><tr style="background:#1a1a2e;color:#fff">
+          <th style="padding:6px 8px;text-align:left;font-weight:500">Vintage</th>
+          <th style="padding:6px 8px;text-align:center">25th</th>
+          <th style="padding:6px 8px;text-align:center">50th</th>
+          <th style="padding:6px 8px;text-align:center">75th</th>
+          <th style="padding:6px 8px;text-align:center">90th</th>
+        </tr></thead>
+        <tbody id="ctbl"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="clbl">7/7/6 model — what Carta Q4 2025 actually shows (2017 best vintage)</div>
+      <div class="br"><span style="color:#6b7280">Top decile (7 · 90th · 5.54x)</span><span>35% × 5.54x = 1.94x</span></div>
+      <div class="br"><span style="color:#6b7280">Top quartile (7 · 75th · 3.18x)</span><span>35% × 3.18x = 1.11x</span></div>
+      <div class="br"><span style="color:#6b7280">Average (6 · 50th · 2.06x)</span><span>30% × 2.06x = 0.62x</span></div>
+      <div class="br" style="font-weight:500"><span>Weighted gross — best vintage ever</span><span>3.66x</span></div>
+      <div class="br" style="font-weight:500;color:#185FA5"><span>After Premier II 1%/10%</span><span>~3.30x net</span></div>
+      <div class="br" style="font-weight:500;color:#c0392b"><span>P(achieving 7/7/6 mix)</span><span>~0.05–0.5%</span></div>
+      <div class="ib" style="margin-top:8px">Premier I actual: 3 top decile · 5–6 top quartile · 10–11 average · 1 below average. Genuinely above base rates — not 7/7/6.</div>
+    </div>
+  </div>
+</div>
+
+<div class="foot">
+  <strong>FoF Monte Carlo:</strong> Valid for 20 funds / ~500 underlying companies. Law of large numbers applies. Vintage anchors are direct Carta Q4 2025 $1M–$10M net figures after underlying 2%/20% fees.<br>
+  <strong>Binary satellite model:</strong> Six positions calibrated to Series A/B entry. Base rates from Cambridge Associates / Correlation Ventures early stage data, adjusted upward for post-seed survival filter. Independent between positions — see two-factor model for correlation-adjusted view.<br>
+  <strong>Two-factor satellite model:</strong> Market factor drawn once per simulation (correlated across all 6 positions). Company factor drawn independently per position. Effective independent bets typically 1.5–2.5 regardless of number of positions due to shared macro exposure.<br>
+  Illustrative only. Not a forecast or guarantee of future performance.
+</div>
+<div class="conf">DECILE CAPITAL PREMIER II · STRICTLY CONFIDENTIAL · FOR QUALIFIED LP USE ONLY</div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────
+const VIN = {
+  opt:{td:5.54,tq:3.18,av:2.06,ba:1.41},
+  rea:{td:3.08,tq:2.04,av:1.14,ba:0.92},
+  con:{td:1.95,tq:1.35,av:1.03,ba:0.84},
+  p1: {td:3.08,tq:2.04,av:1.14,ba:0.92}
+};
+const P1MIX = {td:3,tq:5,av:10,ba:1};
+
+// FoF net for binary tab (3/5/10/2 mix)
+const FOF_NET = {opt:3.30, rea:1.10, con:0.95};
+
+// Series A/B calibrated rates per position
+// [loss<1x, return1-2x, modest2-5x, strong5-15x, extraordinary15x+]
+const SAT_RATES = {
+  none: [0.38, 0.22, 0.20, 0.13, 0.07],
+  mod:  [0.30, 0.20, 0.20, 0.18, 0.12],
+  str:  [0.22, 0.18, 0.20, 0.22, 0.18]
+};
+// Midpoint returns for each bucket (net to LP after 10% carry)
+const SAT_NET = [0.40, 1.35, 2.95, 7.60, 19.50];
+// Labels
+const SAT_LABELS = ['Loss (<1x)','Return of cost\n(1–2x)','Modest\n(2–5x)','Strong\n(5–15x)','Extraordinary\n(15x+)'];
+
+const CARTA = [
+  {v:'2017',p25:1.41,p50:2.06,p75:3.18,p90:5.54},
+  {v:'2018',p25:1.32,p50:1.88,p75:2.75,p90:4.50},
+  {v:'2019',p25:0.99,p50:1.21,p75:2.19,p90:5.42},
+  {v:'2020',p25:0.92,p50:1.14,p75:2.04,p90:3.08},
+  {v:'2021',p25:0.84,p50:1.03,p75:1.35,p90:1.95},
+  {v:'2022',p25:0.88,p50:1.03,p75:1.28,p90:1.86},
+  {v:'2023',p25:0.88,p50:0.98,p75:1.12,p90:1.62},
+  {v:'2024',p25:0.84,p50:0.91,p75:1.02,p90:1.18}
+];
+const BKTS=[0,1,1.5,2,2.5,3,3.5,4,4.5,5,6,8,15];
+const LBLS=['0–1x','1–1.5x','1.5–2x','2–2.5x','2.5–3x','3–3.5x','3.5–4x','4–4.5x','4.5–5x','5–6x','6–8x','8x+'];
+
+let charts={};
+let timers={f:null,t:null};
+const DELAY=700;
+const P1 = {td:3,tq:5,av:10,ba:1};
+
+function g(id){return document.getElementById(id);}
+function v(id){return +g(id).value;}
+function sv(id){return g(id).value;}
+
+function lu(lo,hi){if(lo<=0)lo=0;if(hi<=lo)hi=lo+0.01;if(lo===0)return Math.random()*hi;return Math.exp(Math.random()*(Math.log(hi)-Math.log(lo))+Math.log(lo));}
+
+function getMix(pfx){
+  if(sv(pfx+'VIN')==='p1')return{...P1MIX};
+  return{td:v(pfx+'TD'),tq:v(pfx+'TQ'),av:v(pfx+'AV'),ba:v(pfx+'BA')};
+}
+function lockSliders(pfx,locked,mix){
+  ['TD','TQ','AV','BA'].forEach(k=>{const el=g(pfx+k);el.disabled=locked;if(locked){el.value=mix[k.toLowerCase()];g(pfx+k+'v').textContent=mix[k.toLowerCase()];}});
+}
+function fofWtGross(m,vin){const tot=m.td+m.tq+m.av+m.ba;if(!tot)return 0;return(m.td*vin.td+m.tq*vin.tq+m.av*vin.av+m.ba*vin.ba)/tot;}
+function fofFee(gross,fee){if(fee==='none')return Math.max(gross,0);const c=fee==='std'?0.15:0.10,mf=fee==='std'?0.15:0.10;return Math.max(gross-(gross>1?(gross-1)*c:0)-mf,0);}
+function drawFoF(m,vin){const tot=m.td+m.tq+m.av+m.ba;if(!tot)return 0;let s=0;for(let j=0;j<m.td;j++)s+=lu(vin.tq,vin.td*1.2);for(let j=0;j<m.tq;j++)s+=lu(vin.av,vin.tq*1.15);for(let j=0;j<m.av;j++)s+=lu(Math.max(vin.av*0.6,0.3),vin.av*1.2);for(let j=0;j<m.ba;j++)s+=lu(Math.max(vin.ba*0.3,0.1),vin.ba*1.1);return s/tot;}
+
+function mkChart(id,datasets,colFns,existing){
+  if(existing)existing.destroy();
+  const ds=datasets.map((res,di)=>{
+    const N=res.length,d=[];
+    for(let i=0;i<BKTS.length-1;i++)d.push(+(res.filter(r=>r>=BKTS[i]&&r<BKTS[i+1]).length/N*100).toFixed(1));
+    d.push(+(res.filter(r=>r>=15).length/N*100).toFixed(1));
+    return{data:d,backgroundColor:d.map((_,i)=>colFns[di](BKTS[i])),borderWidth:0,borderRadius:2,barPercentage:datasets.length>1?0.6:0.8,categoryPercentage:datasets.length>1?0.65:0.8};
+  });
+  return new Chart(g(id),{type:'bar',data:{labels:LBLS,datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw.toFixed(1)}%`}}},scales:{x:{grid:{display:false},ticks:{font:{size:9},color:'#6b7280',maxRotation:30}},y:{grid:{color:'rgba(0,0,0,0.06)'},ticks:{font:{size:9},color:'#6b7280',callback:v=>v+'%'}}}}});
+}
+function mkProbs(id,res,N,targets){g(id).innerHTML=targets.map(t=>{const p=(res.filter(r=>r>=t).length/N*100).toFixed(1);const col=parseFloat(p)>=20?'#0a6e3f':parseFloat(p)>=10?'#185FA5':'#c0392b';return`<div class="pc"><div class="pt">≥${t}x</div><div class="pv" style="color:${col}">${p}%</div></div>`;}).join('');}
+function pending(ids){ids.forEach(id=>{const el=g(id);if(el)el.textContent='…';});}
+
+// ── TAB SWITCH ────────────────────────────────────────────────
+function sw(mode){
+  ['fof','binary','twofactor','bmark'].forEach(m=>g('v-'+m).classList.toggle('hid',m!==mode));
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('on',['fof','binary','twofactor','bmark'][i]===mode));
+  if(mode==='bmark')buildCarta();
+  if(mode==='fof'){updateF();runF();}
+  if(mode==='binary')updateBinary();
+  if(mode==='twofactor'){updateTF();runTF();}
+}
+function buildCarta(){g('ctbl').innerHTML=CARTA.map((r,i)=>`<tr style="background:${i%2?'#f5f5f0':'#fff'}"><td style="padding:5px 8px;font-weight:500">${r.v}</td><td style="padding:5px 8px;text-align:center">${r.p25}x</td><td style="padding:5px 8px;text-align:center">${r.p50}x</td><td style="padding:5px 8px;text-align:center">${r.p75}x</td><td style="padding:5px 8px;text-align:center;font-weight:500;color:${r.p90>=4?'#0a6e3f':'#185FA5'}">${r.p90}x</td></tr>`).join('');}
+
+// ── FOF MONTE CARLO ───────────────────────────────────────────
+function onFvin(){const isP1=sv('fVIN')==='p1';lockSliders('f',isP1,P1MIX);onF();}
+function onF(){
+  const vin=VIN[sv('fVIN')],m=getMix('f'),fee=sv('fFee');
+  g('fTDv').textContent=m.td;g('fTQv').textContent=m.tq;g('fAVv').textContent=m.av;g('fBAv').textContent=m.ba;
+  g('fTot').textContent=m.td+m.tq+m.av+m.ba;
+  const gross=fofWtGross(m,vin),net=fofFee(gross,fee);
+  g('fGrs').textContent=gross.toFixed(2)+'x';g('fNetCalc').textContent=net.toFixed(2)+'x';
+  const ceil=fofFee(fofWtGross({td:7,tq:7,av:6,ba:0},VIN.opt),fee);
+  g('f776').textContent=ceil.toFixed(2)+'x';g('fCeil').textContent=ceil.toFixed(2)+'x';
+  pending(['fMed','fMean','fP3','fP2']);
+  clearTimeout(timers.f);timers.f=setTimeout(runF,DELAY);
+}
+function runF(){
+  const vin=VIN[sv('fVIN')],m=getMix('f'),fee=sv('fFee');
+  const N=20000;const res=[];
+  for(let i=0;i<N;i++)res.push(fofFee(drawFoF(m,vin),fee));
+  res.sort((a,b)=>a-b);
+  g('fMed').textContent=res[Math.floor(N/2)].toFixed(2)+'x';
+  g('fMean').textContent=(res.reduce((a,b)=>a+b,0)/N).toFixed(2)+'x';
+  g('fP3').textContent=(res.filter(r=>r>=3).length/N*100).toFixed(1)+'%';
+  g('fP2').textContent=(res.filter(r=>r>=2).length/N*100).toFixed(1)+'%';
+  const fofNet=fofFee(fofWtGross(getMix('f'),vin),'pre');
+  charts.f=mkChart('fCht',[res],[b=>b>=3?'#1D9E75':b>=2?'#185FA5':'rgba(24,95,165,0.3)'],charts.f);
+  mkProbs('fProb',res,N,[1.5,2.0,2.5,3.0,3.5,4.0]);
+}
+
+// ── BINARY SATELLITE ──────────────────────────────────────────
+function updateBinary(){
+  const vinKey=sv('bVIN'),edgKey=sv('bEdg');
+  const fofNet=FOF_NET[vinKey];
+  const fofC=(fofNet*0.70);
+  g('bFof').textContent=fofNet.toFixed(2)+'x';
+  g('bFofC').textContent=fofC.toFixed(2)+'x';
+
+  const rates=SAT_RATES[edgKey];
+  g('bRates').innerHTML=`Series A/B base rates (per position): Loss ${(rates[0]*100).toFixed(0)}% · 1–2x ${(rates[1]*100).toFixed(0)}% · 2–5x ${(rates[2]*100).toFixed(0)}% · 5–15x ${(rates[3]*100).toFixed(0)}% · 15x+ ${(rates[4]*100).toFixed(0)}%`;
+
+  // Compute scenarios analytically for 6 positions
+  // P(0 hits above 5x) = (1-p_strong-p_extra)^6
+  const pHit = rates[3]+rates[4]; // P(strong or extraordinary per position)
+  const pStrong = rates[3];
+  const pExtra = rates[4];
+  const n = 6;
+
+  // Scenario 1: No meaningful hit (all below 5x net)
+  // Expected satellite avg when no position hits 5x+
+  const pNo = Math.pow(1-pHit, n);
+  const satNoHit = rates[0]*SAT_NET[0]+rates[1]*SAT_NET[1]+rates[2]*SAT_NET[2];
+  const satNoHitAdj = satNoHit / (rates[0]+rates[1]+rates[2]); // conditional avg given no hit
+  const blendNo = fofC + satNoHitAdj*0.30;
+
+  // Scenario 2: One modest hit (5-15x), rest below 5x
+  const pOne = n*pStrong*Math.pow(1-pHit,n-1);
+  const satOne = (SAT_NET[3]*1 + satNoHitAdj*5)/6; // 1 strong + 5 no-hit avg
+  const blendOne = fofC + satOne*0.30;
+
+  // Scenario 3: One extraordinary hit (15x+), rest below 5x
+  const pExtra6 = n*pExtra*Math.pow(1-pHit,n-1);
+  const satExtra = (SAT_NET[4]*1 + satNoHitAdj*5)/6;
+  const blendExtra = fofC + satExtra*0.30;
+
+  // Scenario 4: Multiple hits
+  const pMulti = 1 - pNo - pOne - pExtra6;
+  const satMulti = (SAT_NET[4]*2 + SAT_NET[3]*1 + satNoHitAdj*3)/6; // 2 extraordinary + 1 strong + 3 modest
+  const blendMulti = fofC + satMulti*0.30;
+
+  const scenarios = [
+    {prob:pNo, label:'No meaningful hit', desc:`All 6 positions return below 5x net. Satellite avg ~${satNoHitAdj.toFixed(1)}x. Drags blended below FoF alone.`, blend:blendNo, cls:'bad', probColor:'#c0392b'},
+    {prob:pOne, label:'One strong hit', desc:`One position returns 5–15x. Five positions modest/flat. Satellite avg ~${satOne.toFixed(1)}x.`, blend:blendOne, cls:'meh', probColor:'#185FA5'},
+    {prob:pExtra6, label:'One extraordinary hit', desc:`One position returns 15x+. Five positions modest/flat. Satellite avg ~${satExtra.toFixed(1)}x.`, blend:blendExtra, cls:'good', probColor:'#0a6e3f'},
+    {prob:pMulti, label:'Multiple hits', desc:`Two or more positions above 5x incl. at least one extraordinary. Satellite avg ~${satMulti.toFixed(1)}x.`, blend:blendMulti, cls:'great', probColor:'#0a6e3f'},
+  ];
+
+  g('bTree').innerHTML = scenarios.map(s=>`
+    <div class="tnode ${s.cls}">
+      <div class="tprob" style="color:${s.probColor}">${(s.prob*100).toFixed(0)}%</div>
+      <div class="tlbl">${s.label}</div>
+      <div class="tdesc">${s.desc}</div>
+      <div class="tblend">Blended: ${s.blend.toFixed(2)}x</div>
+    </div>`).join('');
+
+  // Drag/lift stats
+  const dragPct = (pNo*100).toFixed(0);
+  const liftPct = ((pOne+pExtra6+pMulti)*100).toFixed(0);
+  const greatPct = ((pExtra6+pMulti)*100).toFixed(0);
+  g('bDragPct').textContent = dragPct+'%';
+  g('bLiftPct').textContent = liftPct+'%';
+  g('bGreatPct').textContent = greatPct+'%';
+
+  // Bar chart showing blended by scenario
+  if(charts.b)charts.b.destroy();
+  charts.b=new Chart(g('bCht'),{
+    type:'bar',
+    data:{
+      labels:scenarios.map(s=>s.label),
+      datasets:[
+        {label:'Probability',data:scenarios.map(s=>+(s.prob*100).toFixed(1)),backgroundColor:['rgba(239,68,68,0.7)','rgba(24,95,165,0.7)','rgba(29,158,117,0.7)','rgba(29,158,117,0.9)'],borderWidth:0,borderRadius:3,yAxisID:'y1'},
+        {label:'Blended TVPI',data:scenarios.map(s=>+s.blend.toFixed(2)),backgroundColor:'rgba(0,0,0,0)',borderColor:['#c0392b','#185FA5','#1D9E75','#0a6e3f'],borderWidth:2,type:'line',yAxisID:'y2',pointRadius:6,pointBackgroundColor:['#c0392b','#185FA5','#1D9E75','#0a6e3f']}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,position:'top',labels:{font:{size:10},boxWidth:12}},tooltip:{callbacks:{label:c=>c.datasetIndex===0?` ${c.raw.toFixed(1)}% of outcomes`:` ${c.raw.toFixed(2)}x blended`}}},
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:10},color:'#6b7280'}},
+        y1:{grid:{color:'rgba(0,0,0,0.06)'},ticks:{font:{size:9},color:'#6b7280',callback:v=>v+'%'},title:{display:true,text:'Probability',font:{size:9}}},
+        y2:{position:'right',grid:{display:false},ticks:{font:{size:9},color:'#6b7280',callback:v=>v+'x'},title:{display:true,text:'Blended TVPI',font:{size:9}},min:0,max:Math.max(...scenarios.map(s=>s.blend))*1.3}
+      }
+    }
+  });
+}
+
+// ── TWO-FACTOR MODEL ──────────────────────────────────────────
+function onTFvin(){const isP1=sv('tVIN')==='p1';lockSliders('t',isP1,P1MIX);onTF();}
+function onTF(){
+  const vin=VIN[sv('tVIN')],m=getMix('t');
+  g('tTDv').textContent=m.td;g('tTQv').textContent=m.tq;g('tAVv').textContent=m.av;g('tBAv').textContent=m.ba;
+  const mktVol=v('tMkt');
+  g('tMktv').textContent=['Low','Medium','High'][mktVol-1];
+  // Effective independent bets = n / (1 + (n-1)*rho) where rho = correlation
+  const rho = [0.15,0.35,0.55][mktVol-1]; // low/med/high market correlation
+  const effBets = (6/(1+(6-1)*rho)).toFixed(1);
+  g('tEffBets').textContent=effBets;
+  pending(['tMed','tMean','tPb','tP5']);
+  clearTimeout(timers.t);timers.t=setTimeout(runTF,DELAY);
+}
+
+function runTF(){
+  const vin=VIN[sv('tVIN')],m=getMix('t'),edgKey=sv('tEdg'),mktVol=v('tMkt');
+  const rates=SAT_RATES[edgKey];
+  const rho=[0.15,0.35,0.55][mktVol-1];
+  // Market factor: mixture model — 80% normal market, 15% bad market, 5% great market
+  // Captures fat tails without exploding means
+  function drawMarketFactor(){
+    const u=Math.random();
+    if(u<0.05) return lu(0.05,0.3);        // crash/freeze — exits impossible
+    if(u<0.20) return lu(0.3,0.7);         // bad market — compressed exits
+    if(u<0.85) return lu(0.7,1.5);         // normal market
+    if(u<0.97) return lu(1.5,2.5);         // good exit window
+    return lu(2.5,4.0);                    // euphoric market (2021-style) — capped at 4x
+  }
+
+  // Compute effective independent bets
+  const effBets=(6/(1+(6-1)*rho)).toFixed(1);
+  g('tEffBets').textContent=effBets;
+
+  const N=20000;
+  const blended=[],fofArr=[];
+  // Also run binary-equivalent (independent) for comparison
+  const blendedIndep=[];
+
+  for(let i=0;i<N;i++){
+    const fn=fofFee(drawFoF(m,vin),'pre');
+    fofArr.push(fn);
+
+    // Market factor — drawn ONCE per simulation, applied to all 6 positions
+    const mktFactor=drawMarketFactor();
+
+    // Independent comparison — no market factor
+    let satSumIndep=0;
+    let satSumCorr=0;
+
+    for(let j=0;j<6;j++){
+      const r=Math.random();let c=0;let bkt=0;
+      for(let k=0;k<rates.length;k++){c+=rates[k];if(r<=c){bkt=k;break;}}
+      const lo=[0,0.3,0.5,0.8,1.0][bkt]*SAT_NET[bkt];
+      const hi=[1.5,2.5,8,20,50][bkt];
+      const compGross=lu(lo,hi);
+
+      // Correlated: market factor applied
+      const corrGross=Math.max(compGross*mktFactor,0);
+      const corrNet=corrGross>1?corrGross-(corrGross-1)*0.10-0.05:Math.max(corrGross-0.05,0);
+      satSumCorr+=corrNet;
+
+      // Independent: no market factor
+      const indepNet=compGross>1?compGross-(compGross-1)*0.10-0.05:Math.max(compGross-0.05,0);
+      satSumIndep+=indepNet;
+    }
+
+    blended.push(fn*0.70+(satSumCorr/6)*0.30);
+    blendedIndep.push(fn*0.70+(satSumIndep/6)*0.30);
+  }
+
+  blended.sort((a,b)=>a-b);
+  blendedIndep.sort((a,b)=>a-b);
+  fofArr.sort((a,b)=>a-b);
+
+  const med=blended[Math.floor(N/2)];
+  const mean=blended.reduce((a,b)=>a+b,0)/N;
+  const medI=blendedIndep[Math.floor(N/2)];
+
+  g('tMed').textContent=med.toFixed(2)+'x';
+  g('tMean').textContent=mean.toFixed(2)+'x';
+  g('tPb').textContent=(blended.filter(r=>r>=3.1).length/N*100).toFixed(1)+'%';
+  g('tP5').textContent=(blended.filter(r=>r>=5).length/N*100).toFixed(1)+'%';
+
+  // Median cost of correlation
+  const corrCost=(medI-med).toFixed(2);
+  g('tCorrCost').textContent=(corrCost>0?'-':'')+Math.abs(corrCost)+'x';
+
+  const fofNet=fofFee(fofWtGross(m,vin),'pre');
+
+  // Main chart: correlated (two-factor) vs independent side by side
+  if(charts.tB)charts.tB.destroy();
+  const BKTS2=[0,1,1.5,2,2.5,3,3.5,4,4.5,5,6,8,15];
+  function mkBars(res,colFn){const N=res.length,d=[];for(let i=0;i<BKTS2.length-1;i++)d.push(+(res.filter(r=>r>=BKTS2[i]&&r<BKTS2[i+1]).length/N*100).toFixed(1));d.push(+(res.filter(r=>r>=15).length/N*100).toFixed(1));return{data:d,backgroundColor:d.map((_,i)=>colFn(BKTS2[i]))};}
+  const corrBars=mkBars(blended,b=>b>=5?'rgba(29,158,117,0.85)':b>=fofNet?'rgba(24,95,165,0.85)':'rgba(24,95,165,0.3)');
+  const indepBars=mkBars(blendedIndep,b=>b>=5?'rgba(29,158,117,0.35)':b>=fofNet?'rgba(24,95,165,0.35)':'rgba(24,95,165,0.12)');
+  charts.tB=new Chart(g('tCht'),{type:'bar',
+    data:{labels:LBLS,datasets:[
+      {...corrBars,borderWidth:0,borderRadius:2,barPercentage:0.65,categoryPercentage:0.7,label:'Two-factor (correlated)'},
+      {...indepBars,borderWidth:0,borderRadius:2,barPercentage:0.65,categoryPercentage:0.7,label:'Independent (no correlation)'}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,position:'top',labels:{font:{size:9},boxWidth:10}},tooltip:{callbacks:{label:c=>` ${c.raw.toFixed(1)}%`}}},
+      scales:{x:{grid:{display:false},ticks:{font:{size:9},color:'#6b7280',maxRotation:30}},y:{grid:{color:'rgba(0,0,0,0.06)'},ticks:{font:{size:9},color:'#6b7280',callback:v=>v+'%'}}}}});
+
+  charts.tF=mkChart('tFCht',[fofArr],[b=>b>=3?'#1D9E75':b>=2?'#185FA5':'rgba(24,95,165,0.3)'],charts.tF);
+  mkProbs('tProb',blended,N,[3.0,3.5,4.0,4.5,5.0,5.7]);
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+onF(); updateBinary(); onTF(); runF();
+</script>
+</body>
+</html>

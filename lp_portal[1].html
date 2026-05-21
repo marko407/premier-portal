@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Decile Capital — LP Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0f0f0f;--paper:#fafaf8;--muted:#6b7280;--border:rgba(0,0,0,0.08);--accent:#1a3a5c;--accent-light:#dbeafe;--green:#064e3b;--green-light:#d1fae5;--sw:220px;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;}
+
+/* GATE */
+#gate{position:fixed;inset:0;background:var(--paper);display:flex;align-items:center;justify-content:center;z-index:1000;}
+.gi{text-align:center;max-width:320px;width:90%;}
+.gl{font-family:'Cormorant Garamond',serif;font-size:11px;letter-spacing:0.25em;text-transform:uppercase;color:var(--muted);margin-bottom:36px;}
+.gt{font-family:'Cormorant Garamond',serif;font-size:30px;margin-bottom:6px;}
+.gs{font-size:12px;color:var(--muted);margin-bottom:32px;line-height:1.6;}
+.gp{width:100%;padding:11px 14px;border:0.5px solid rgba(0,0,0,0.2);border-radius:4px;font-family:'DM Sans',sans-serif;font-size:14px;background:var(--paper);color:var(--ink);letter-spacing:0.1em;margin-bottom:10px;outline:none;}
+.gp:focus{border-color:var(--accent);}
+.gb{width:100%;padding:11px 14px;background:var(--accent);color:#fff;border:none;border-radius:4px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;}
+.gb:hover{opacity:0.85;}
+.ge{font-size:11px;color:#dc2626;margin-top:6px;min-height:16px;}
+.gn{font-size:10px;color:var(--muted);margin-top:24px;line-height:1.6;}
+
+/* APP */
+#app{display:none;}
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sw);background:#fff;border-right:0.5px solid var(--border);display:flex;flex-direction:column;z-index:100;}
+.sl{padding:26px 22px 18px;border-bottom:0.5px solid var(--border);}
+.slf{font-family:'Cormorant Garamond',serif;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.sln{font-family:'Cormorant Garamond',serif;font-size:19px;}
+nav{flex:1;padding:10px 0;overflow-y:auto;}
+.ns{padding:14px 22px 5px;font-size:9px;font-weight:500;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);}
+.ni{display:flex;align-items:center;gap:9px;padding:8px 22px;font-size:12px;color:var(--muted);cursor:pointer;border:none;background:none;width:100%;text-align:left;border-left:2px solid transparent;transition:all 0.1s;}
+.ni:hover{color:var(--ink);background:rgba(0,0,0,0.02);}
+.ni.on{color:var(--accent);background:var(--accent-light);border-left-color:var(--accent);font-weight:500;}
+.nd{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:0.5;flex-shrink:0;}
+.sf{padding:18px 22px;border-top:0.5px solid var(--border);font-size:10px;color:var(--muted);line-height:1.6;}
+.cb{display:inline-block;font-size:8px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;padding:2px 6px;border:0.5px solid var(--muted);border-radius:2px;color:var(--muted);margin-bottom:5px;}
+
+/* CONTENT AREA */
+.main{margin-left:var(--sw);min-height:100vh;}
+
+/* STANDARD PAGE */
+.pg{display:none;padding:44px 48px;max-width:1000px;}
+.pg.on{display:block;animation:fi 0.18s ease;}
+@keyframes fi{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+
+/* FULL HEIGHT PAGES (charts/tools) */
+.pgf{display:none;height:calc(100vh);overflow-y:auto;background:#fff;}
+.pgf.on{display:block;animation:fi 0.18s ease;}
+.pgf-inner{padding:40px 48px;max-width:1100px;}
+
+.ey{font-size:9px;font-weight:500;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.pt{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:400;line-height:1.15;margin-bottom:5px;}
+.ps{font-size:13px;color:var(--muted);margin-bottom:32px;line-height:1.6;}
+
+/* METRICS */
+.mg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:28px;}
+.mc{background:#fff;border:0.5px solid var(--border);border-radius:8px;padding:16px;}
+.ml{font-size:9px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;}
+.mv{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:400;line-height:1;margin-bottom:2px;}
+.mv.b{color:var(--accent);}.mv.g{color:var(--green);}
+.ms{font-size:10px;color:var(--muted);}
+
+/* FUND CARDS */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px;}
+.fc{background:#fff;border:0.5px solid var(--border);border-radius:8px;padding:20px;}
+.fn{font-family:'Cormorant Garamond',serif;font-size:17px;margin-bottom:3px;}
+.fm{font-size:11px;color:var(--muted);margin-bottom:14px;}
+.fr{display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid var(--border);font-size:12px;}
+.fr:last-child{border-bottom:none;}
+.frl{color:var(--muted);}
+.frv{font-weight:500;}.frv.b{color:var(--accent);}.frv.g{color:var(--green);}.frv.a{color:#d97706;}
+
+/* UPDATES */
+.ui{padding:18px 0;border-bottom:0.5px solid var(--border);display:grid;grid-template-columns:90px 1fr;gap:18px;}
+.ui:last-child{border-bottom:none;}
+.ud{font-size:11px;color:var(--muted);padding-top:2px;}
+.utt{font-size:13px;font-weight:500;margin-bottom:3px;}
+.ub{font-size:12px;color:var(--muted);line-height:1.65;}
+.utg{display:inline-block;font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;padding:2px 6px;border-radius:2px;margin-top:7px;}
+.utg.r{background:var(--accent-light);color:var(--accent);}
+.utg.p{background:var(--green-light);color:var(--green);}
+.utg.a{background:#fef3c7;color:#92400e;}
+
+/* DOCS */
+.dl{display:flex;flex-direction:column;gap:7px;}
+.di{background:#fff;border:0.5px solid var(--border);border-radius:6px;padding:13px 15px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:background 0.1s;}
+.di:hover{background:#f8f7f4;}
+.dn{font-size:13px;font-weight:500;margin-bottom:2px;}
+.dm{font-size:11px;color:var(--muted);}
+.db{font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;padding:3px 8px;border-radius:2px;white-space:nowrap;}
+.db.d{background:#fee2e2;color:#991b1b;}
+.db.v{background:var(--accent-light);color:var(--accent);}
+
+.st{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:400;margin-bottom:14px;padding-bottom:9px;border-bottom:0.5px solid var(--border);}
+.nb{background:var(--accent-light);border:0.5px solid rgba(26,58,92,0.15);border-radius:6px;padding:12px 15px;font-size:11px;color:var(--accent);line-height:1.65;margin-bottom:22px;}
+</style>
+</head>
+<body>
+
+<!-- GATE -->
+<div id="gate">
+  <div class="gi">
+    <div class="gl">Decile Capital</div>
+    <div class="gt">LP Portal</div>
+    <p class="gs">Premier Fund I &amp; II · Strictly confidential<br>For existing limited partners only</p>
+    <input type="password" class="gp" id="pw" placeholder="Access code" onkeydown="if(event.key==='Enter')auth()">
+    <button class="gb" onclick="auth()">Enter</button>
+    <div class="ge" id="ge"></div>
+    <p class="gn">This portal contains confidential fund information restricted to current Premier Fund limited partners.</p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="sidebar">
+    <div class="sl">
+      <div class="slf">Decile Capital</div>
+      <div class="sln">LP Portal</div>
+    </div>
+    <nav>
+      <div class="ns">Overview</div>
+      <button class="ni on" onclick="sw('dash')"><span class="nd"></span>Dashboard</button>
+      <button class="ni" onclick="sw('updates')"><span class="nd"></span>Latest updates</button>
+      <div class="ns">Premier I</div>
+      <button class="ni" onclick="sw('p1')"><span class="nd"></span>Fund summary</button>
+      <button class="ni" onclick="sw('spacex')"><span class="nd"></span>SpaceX position</button>
+      <div class="ns">Premier II</div>
+      <button class="ni" onclick="sw('p2')"><span class="nd"></span>Fund summary</button>
+      <button class="ni" onclick="sw('proj')"><span class="nd"></span>Return projections</button>
+      <button class="ni" onclick="sw('sim')"><span class="nd"></span>Binary scenario model</button>
+      <button class="ni" onclick="sw('fullsim')"><span class="nd"></span>Full simulator</button>
+      <button class="ni" onclick="sw('sat')"><span class="nd"></span>Satellite analysis</button>
+      <div class="ns">Documents</div>
+      <button class="ni" onclick="sw('docs')"><span class="nd"></span>Data room</button>
+    </nav>
+    <div class="sf">
+      <div class="cb">Confidential</div>
+      <div>Premier Fund I &amp; II<br>May 2026 · Decile Capital</div>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="pg on" id="pg-dash">
+      <div class="ey">Decile Capital · May 2026</div>
+      <div class="pt">Good morning.</div>
+      <p class="ps">Latest fund metrics and developments across Premier I and Premier II.</p>
+      <div class="nb">SpaceX Forge price updated to $647/share (May 2026) — Premier I cap-adjusted TVPI now ~1.80x. See SpaceX position tab for full detail.</div>
+      <div class="mg">
+        <div class="mc"><div class="ml">Premier I · Base TVPI</div><div class="mv b">1.14x</div><div class="ms">Administrator-verified · Q1 2026</div></div>
+        <div class="mc"><div class="ml">Premier I · Cap-adj TVPI</div><div class="mv b">~1.80x</div><div class="ms">Forge $647/share · May 2026</div></div>
+        <div class="mc"><div class="ml">Premier II · First close</div><div class="mv g">$2.6M</div><div class="ms">25% called · May 2026</div></div>
+        <div class="mc"><div class="ml">SpaceX position TVPI</div><div class="mv g">7.75x</div><div class="ms">Forge estimate · unrealised</div></div>
+      </div>
+      <div class="st">Fund at a glance</div>
+      <div class="fg">
+        <div class="fc">
+          <div class="fn">Premier Fund I</div>
+          <div class="fm">2022 vintage · Fully deployed</div>
+          <div class="fr"><span class="frl">Total commitment</span><span class="frv">$5.24M</span></div>
+          <div class="fr"><span class="frl">Called capital</span><span class="frv">85% · $4.46M</span></div>
+          <div class="fr"><span class="frl">Base TVPI</span><span class="frv b">1.14x</span></div>
+          <div class="fr"><span class="frl">Cap-adj TVPI</span><span class="frv b">~1.80x</span></div>
+          <div class="fr"><span class="frl">DPI</span><span class="frv">0.002x</span></div>
+          <div class="fr"><span class="frl">Portfolio</span><span class="frv">19 funds · ~470 companies</span></div>
+          <div class="fr"><span class="frl">Carta benchmark</span><span class="frv g">Above median · approaching top decile cap-adj</span></div>
+        </div>
+        <div class="fc">
+          <div class="fn">Premier Fund II</div>
+          <div class="fm">2025 vintage · Active fundraising</div>
+          <div class="fr"><span class="frl">First close</span><span class="frv">$2.6M · May 2026</span></div>
+          <div class="fr"><span class="frl">Target</span><span class="frv">$15M</span></div>
+          <div class="fr"><span class="frl">Called capital</span><span class="frv">25% · $650K</span></div>
+          <div class="fr"><span class="frl">Strategy</span><span class="frv">70% FoF · 30% satellite</span></div>
+          <div class="fr"><span class="frl">Fund investments</span><span class="frv">3 committed</span></div>
+          <div class="fr"><span class="frl">Fees</span><span class="frv">1% mgmt · 10% carry</span></div>
+          <div class="fr"><span class="frl">Investment period</span><span class="frv">3 yrs from June 2025</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPDATES -->
+    <div class="pg" id="pg-updates">
+      <div class="ey">Latest</div>
+      <div class="pt">Updates</div>
+      <p class="ps">Material developments across both funds.</p>
+      <div class="ui"><div class="ud">May 2026</div><div><div class="utt">SpaceX Forge price updated — $647/share</div><div class="ub">Forge estimate updated to $647/share from $612.07 at Q1 2026. Premier I FMV $3,874,236 at 7.75x on $500K cost. Partial secondary sale under consideration to generate DPI.</div><span class="utg p">SpaceX position</span></div></div>
+      <div class="ui"><div class="ud">May 2026</div><div><div class="utt">Premier II first close — $2.6M</div><div class="ub">Three fund commitments completed: Geek Ventures Fund II, Hallstone Ventures Fund I, Prana Tech Ventures Fund I. Blue Moon Ventures under consideration. Fundraising continues through ~June 2027.</div><span class="utg r">Premier II</span></div></div>
+      <div class="ui"><div class="ud">Q1 2026</div><div><div class="utt">Premier I Q1 2026 report issued</div><div class="ub">Base TVPI 1.14x administrator-verified. Cap-adjusted 1.75x. xAI/SpaceX merger completed — 41,771 xAI shares converted to 5,988 SpaceX Class A Common. 11 of 19 managers above Carta median.</div><span class="utg r">Premier I</span></div></div>
+      <div class="ui"><div class="ud">Q1 2025</div><div><div class="utt">First Check Ventures LatAm — Limited Operations</div><div class="ub">Following the passing of the managing partner the fund entered Limited Operations. Carried at 0.58x. Legal advisors evaluating resolution. 1.4% of Premier I called capital — limited fund impact.</div><span class="utg a">Administration</span></div></div>
+    </div>
+
+    <!-- PREMIER I -->
+    <div class="pg" id="pg-p1">
+      <div class="ey">Premier Fund I · Q1 2026</div>
+      <div class="pt">Fund Summary</div>
+      <p class="ps">2022 vintage · Fully deployed · 19 fund investments · ~470 portfolio companies</p>
+      <div class="mg">
+        <div class="mc"><div class="ml">Base TVPI</div><div class="mv b">1.14x</div><div class="ms">Administrator-verified</div></div>
+        <div class="mc"><div class="ml">Cap-adj TVPI</div><div class="mv b">~1.80x</div><div class="ms">Forge May 2026</div></div>
+        <div class="mc"><div class="ml">DPI</div><div class="mv">0.002x</div><div class="ms">$8,688 distributed</div></div>
+        <div class="mc"><div class="ml">Called capital</div><div class="mv">85%</div><div class="ms">$4.46M of $5.24M</div></div>
+      </div>
+      <div class="st">Performance detail</div>
+      <div class="fc" style="margin-bottom:16px">
+        <div class="fr"><span class="frl">Base TVPI</span><span class="frv b">1.14x · administrator-verified · Q1 2026</span></div>
+        <div class="fr"><span class="frl">Cap-adj TVPI (Q1 2026)</span><span class="frv b">1.75x · Forge $612.07/share</span></div>
+        <div class="fr"><span class="frl">Cap-adj TVPI (May 2026)</span><span class="frv b">~1.80x · Forge $647/share</span></div>
+        <div class="fr"><span class="frl">Carta benchmark 2022</span><span class="frv g">Base above median · cap-adj approaching top decile</span></div>
+        <div class="fr"><span class="frl">Manager performance</span><span class="frv">11/19 above median · 6 top quartile · 3 top decile</span></div>
+        <div class="fr"><span class="frl">FoF sleeve ex-xAI</span><span class="frv">0.92x cap-adj · J-curve consistent</span></div>
+      </div>
+      <div class="st">Near-term catalysts</div>
+      <div class="fc">
+        <div class="fr"><span class="frl">Series A — Q2 2026</span><span class="frv">One company · $4.67M ARR · first priced markup</span></div>
+        <div class="fr"><span class="frl">Series B — Q1 2027</span><span class="frv">$20M ARR +791% YoY · carried below revenue</span></div>
+        <div class="fr"><span class="frl">H2 2026 distributions</span><span class="frv">One top-5 fund expected to begin distributions</span></div>
+        <div class="fr"><span class="frl">SpaceX partial sale</span><span class="frv">Under consideration · DPI ~0.17–0.27x</span></div>
+      </div>
+    </div>
+
+    <!-- SPACEX -->
+    <div class="pgf" id="pg-spacex">
+      <div class="pgf-inner">
+        <div class="ey">Premier Fund I · May 2026</div>
+        <div class="pt">Adeo Ressi AI LLC — SpaceX Position</div>
+        <p class="ps">Key Individual SPV · Section 4.3.4 · No SPV-level fees</p>
+        <div class="mg">
+          <div class="mc"><div class="ml">Current FMV</div><div class="mv g">$3.87M</div><div class="ms">Forge $647/share · May 2026</div></div>
+          <div class="mc"><div class="ml">TVPI</div><div class="mv g">7.75x</div><div class="ms">On $500K cost · unrealised</div></div>
+          <div class="mc"><div class="ml">Cost basis</div><div class="mv">$500K</div><div class="ms">$11.97/share · Series B · xAI</div></div>
+          <div class="mc"><div class="ml">Premier I interest</div><div class="mv">15.02%</div><div class="ms">Pro-rata in SPV</div></div>
+        </div>
+        <div class="st">Valuation history</div>
+        <div class="fc" style="margin-bottom:16px">
+          <div class="fr"><span class="frl">2022 · Series B — Entry</span><span class="frv">$11.97/share · 41,771 shares · $500,000 · 1.00x</span></div>
+          <div class="fr"><span class="frl">Dec 2025 · Series D</span><span class="frv">$36.56/share · 41,771 shares · $1,524,552 · 3.05x</span></div>
+          <div class="fr"><span class="frl">Jan 2026 · Series E</span><span class="frv">$75.46/share · 41,771 shares · $3,146,682 · 6.29x</span></div>
+          <div class="fr"><span class="frl">Q1 2026 · xAI/SpaceX merger</span><span class="frv">$612.07/share · 5,988 shares · $3,667,995 · 7.33x</span></div>
+          <div class="fr"><span class="frl">May 2026 · Forge estimate</span><span class="frv b">$647/share · 5,988 shares · $3,874,236 · 7.75x</span></div>
+        </div>
+        <div class="st">Notes</div>
+        <div class="fc">
+          <div class="fr"><span class="frl">SPV-level fees</span><span class="frv g">None</span></div>
+          <div class="fr"><span class="frl">Structure</span><span class="frv">Key Individual SPV · Section 4.3.4 · Cornerstone Exception</span></div>
+          <div class="fr"><span class="frl">Liquidity path</span><span class="frv">SpaceX IPO · Forge secondary</span></div>
+          <div class="fr"><span class="frl">Partial sale</span><span class="frv">Under consideration · requires SPV manager authorisation</span></div>
+          <div class="fr"><span class="frl">Forge pricing</span><span class="frv">Public estimate only · not a confirmed transaction</span></div>
+          <div class="fr"><span class="frl">Fund impact</span><span class="frv">~73% of Premier I total unrealised gain</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PREMIER II -->
+    <div class="pg" id="pg-p2">
+      <div class="ey">Premier Fund II · May 2026</div>
+      <div class="pt">Fund Summary</div>
+      <p class="ps">2025 vintage · Active · 70% FoF + 30% satellite · Target $15M</p>
+      <div class="mg">
+        <div class="mc"><div class="ml">First close</div><div class="mv g">$2.6M</div><div class="ms">May 2026</div></div>
+        <div class="mc"><div class="ml">Called capital</div><div class="mv">25%</div><div class="ms">$650,000</div></div>
+        <div class="mc"><div class="ml">Fund investments</div><div class="mv">3</div><div class="ms">Committed</div></div>
+        <div class="mc"><div class="ml">Target size</div><div class="mv">$15M</div><div class="ms">Max $25M</div></div>
+      </div>
+      <div class="fg">
+        <div class="fc">
+          <div class="fn" style="margin-bottom:12px;font-size:14px">Economics</div>
+          <div class="fr"><span class="frl">Management fee</span><span class="frv">1% both periods</span></div>
+          <div class="fr"><span class="frl">Carried interest</span><span class="frv">10%</span></div>
+          <div class="fr"><span class="frl">GP commitment</span><span class="frv">2.0% of total commitments</span></div>
+          <div class="fr"><span class="frl">SPV-level fees</span><span class="frv g">None — prohibited by LPA S.4.3.4</span></div>
+        </div>
+        <div class="fc">
+          <div class="fn" style="margin-bottom:12px;font-size:14px">Timeline</div>
+          <div class="fr"><span class="frl">Investment period</span><span class="frv">3 years from June 2025</span></div>
+          <div class="fr"><span class="frl">Fundraising period</span><span class="frv">24 months · ~June 2027</span></div>
+          <div class="fr"><span class="frl">Fund duration</span><span class="frv">12 years + 2 extensions</span></div>
+          <div class="fr"><span class="frl">Second close target</span><span class="frv">Q3/Q4 2026</span></div>
+        </div>
+      </div>
+      <div class="st">Current portfolio</div>
+      <div class="fc">
+        <div class="fr"><span class="frl">Geek Ventures Fund II</span><span class="frv">$250,000 · Q1 2026 · pre-seed/seed · AI-native</span></div>
+        <div class="fr"><span class="frl">Hallstone Ventures Fund I</span><span class="frv">$250,000 · Q2 2026 · media &amp; entertainment tech</span></div>
+        <div class="fr"><span class="frl">Prana Tech Ventures Fund I</span><span class="frv">$250,000 · Q2 2026 · deep tech · DoD/NSIN/MIT</span></div>
+        <div class="fr"><span class="frl">Blue Moon Ventures</span><span class="frv a">Under consideration · AI-driven sourcing · Agatha pipeline</span></div>
+        <div class="fr"><span class="frl">Satellite positions</span><span class="frv">None committed · pipeline active</span></div>
+        <div class="fr"><span class="frl">LP co-investment rights</span><span class="frv g">First right of refusal on all satellite positions</span></div>
+      </div>
+    </div>
+
+    <!-- PROJECTIONS -->
+    <div class="pgf" id="pg-proj">
+      <div class="pgf-inner">
+        <div class="ey">Premier II · Return projections</div>
+        <div class="pt">Three honest scenarios.</div>
+        <p class="ps">50,000 Monte Carlo simulations · Carta Q4 2025 anchored · two-factor satellite model · net of Premier II 1%/10%</p>
+        <div class="nb">The simulator tab has the full interactive model. This page shows the fixed output. Realistic: 3/5/10/2 mix · 2020 Carta. Lightning: 7/7/6 mix · 2017 Carta best vintage · P(selection) ~0.05–0.5%.</div>
+        <div class="fg" style="margin-bottom:20px">
+          <div class="fc" style="border-color:#93c5fd;background:#f0f6ff">
+            <div class="fn" style="color:#1d4ed8;margin-bottom:4px">The plan — 3.1x</div>
+            <div class="fm">~20% probability · realistic scenario</div>
+            <div class="fr"><span class="frl">FoF mix</span><span class="frv">3/5/10/2 · 2020 Carta</span></div>
+            <div class="fr"><span class="frl">What it requires</span><span class="frv">Good FoF selection · one satellite that works</span></div>
+            <div class="fr"><span class="frl">Extraordinary required?</span><span class="frv g">No</span></div>
+          </div>
+          <div class="fc" style="border-color:#6ee7b7;background:#f0fdf4">
+            <div class="fn" style="color:#065f46;margin-bottom:4px">Possible — 4.5x</div>
+            <div class="fm">~10% probability · optimistic scenario</div>
+            <div class="fr"><span class="frl">FoF mix</span><span class="frv">7/7/6 · 2017 Carta best vintage</span></div>
+            <div class="fr"><span class="frl">What it requires</span><span class="frv">Hall-of-famer FoF · good macro · one extraordinary satellite</span></div>
+            <div class="fr"><span class="frl">All three simultaneously?</span><span class="frv a">Yes</span></div>
+          </div>
+        </div>
+        <div class="fc" style="border-color:#e8e4dc;background:#f8f7f4">
+          <div class="fn" style="color:var(--muted);margin-bottom:4px">The lightning — 5x+</div>
+          <div class="fm">≥6% probability · model lower bound</div>
+          <div class="fr"><span class="frl">What it requires</span><span class="frv">Perfect storm — 7/7/6 AND best vintage AND great macro AND one satellite at 30x+ entered before market pricing</span></div>
+          <div class="fr"><span class="frl">Can it be planned?</span><span class="frv" style="color:#dc2626">No. Cannot be modelled. Cannot be planned.</span></div>
+          <div class="fr"><span class="frl">Proof it exists</span><span class="frv g">Premier I xAI position at 7.75x — entered $11.97/share Series B 2022</span></div>
+        </div>
+        <p style="margin-top:16px;font-size:10px;color:var(--muted);line-height:1.65">Open the Return Simulator tab for the full interactive model with all assumptions visible and adjustable.</p>
+      </div>
+    </div>
+
+    <!-- SIMULATOR — loads as separate page -->
+    <div class="pgf" id="pg-sim" style="padding:0;">
+      <iframe id="sim-frame" style="width:100%;height:100%;border:none;display:block;" title="Premier II Return Simulator"></iframe>
+    </div>
+
+    <!-- FULL SIMULATOR — loads as separate page -->
+    <div class="pgf" id="pg-fullsim" style="padding:0;">
+      <iframe id="fullsim-frame" style="width:100%;height:100%;border:none;display:block;" title="Premier II Full Return Simulator"></iframe>
+    </div>
+
+    <!-- SATELLITE — loads as separate page -->
+    <div class="pgf" id="pg-sat" style="padding:0;">
+      <iframe id="sat-frame" style="width:100%;height:100%;border:none;display:block;" title="Satellite sleeve analysis"></iframe>
+    </div>
+
+    <!-- DOCS -->
+    <div class="pg" id="pg-docs">
+      <div class="ey">Data room</div>
+      <div class="pt">Documents</div>
+      <p class="ps">All fund documents · May 2026 · Strictly confidential</p>
+      <div class="nb">DOWNLOAD links open the file directly. VIEW links open inside the portal. Downloads require all files to be in the same folder — works automatically on GitHub Pages.</div>
+
+      <div class="st">LP Reports</div>
+      <div class="dl" style="margin-bottom:24px">
+        <div class="di" onclick="dl('premier1_q1_2026_report.docx')"><div><div class="dn">Premier I — Q1 2026 LP Report</div><div class="dm">March 31 2026 · Base TVPI 1.14x · Cap-adj 1.75x</div></div><span class="db d">DOWNLOAD</span></div>
+        <div class="di" onclick="dl('premier2_inaugural_report.docx')"><div><div class="dn">Premier II — Inaugural LP Report</div><div class="dm">May 2026 · First close $2.6M · 3 fund investments</div></div><span class="db d">DOWNLOAD</span></div>
+      </div>
+
+      <div class="st">Position Memos</div>
+      <div class="dl" style="margin-bottom:24px">
+        <div class="di" onclick="dl('premier1_spacex_memo.docx')"><div><div class="dn">xAI / SpaceX — Investment Memo</div><div class="dm">May 2026 · $3,874,236 FMV · 7.75x · Forge $647/share</div></div><span class="db d">DOWNLOAD</span></div>
+        <div class="di" onclick="sw('spacex')"><div><div class="dn">SpaceX SPV — One-pager</div><div class="dm">Interactive · Valuation history · Structure · Notes</div></div><span class="db v">VIEW</span></div>
+      </div>
+
+      <div class="st">Fund Governance</div>
+      <div class="dl" style="margin-bottom:24px">
+        <div class="di" onclick="dl('premier2_ddq.docx')"><div><div class="dn">Premier II — Due Diligence Questionnaire</div><div class="dm">May 2026 · Full DDQ · Investment strategy · Track record · Risk</div></div><span class="db d">DOWNLOAD</span></div>
+        <div class="di" onclick="dl('premier2_fund_selection_process.docx')"><div><div class="dn">Premier II — Fund Selection Process</div><div class="dm">Sourcing · Due diligence · IC process · Satellite sleeve</div></div><span class="db d">DOWNLOAD</span></div>
+        <div class="di" onclick="dl('premier2_coinvestment_memo.docx')"><div><div class="dn">Premier II — Co-Investment Program</div><div class="dm">Three-tier sourcing · LP rights · Fee structure · SPV prohibition</div></div><span class="db d">DOWNLOAD</span></div>
+        <div class="di" onclick="dl('premier1_valuation_methodology_memo.docx')"><div><div class="dn">Premier I — Valuation Methodology</div><div class="dm">Three-tier data hierarchy · Base vs cap-adjusted TVPI</div></div><span class="db d">DOWNLOAD</span></div>
+      </div>
+
+      <div class="st">Modelling &amp; Analysis</div>
+      <div class="dl">
+        <div class="di" onclick="sw('sim')"><div><div class="dn">Premier II — Binary Scenario Model</div><div class="dm">Interactive · Six concentrated positions · Four discrete scenarios · Series A/B calibrated</div></div><span class="db v">OPEN</span></div>
+        <div class="di" onclick="sw('fullsim')"><div><div class="dn">Premier II — Full Return Simulator</div><div class="dm">Advanced · FoF Monte Carlo + binary + two-factor model · All assumptions adjustable · For sophisticated LPs</div></div><span class="db v">OPEN</span></div>
+        <div class="di" onclick="sw('proj')"><div><div class="dn">Premier II — Return Projections</div><div class="dm">Three honest scenarios · Realistic vs lightning · With probabilities</div></div><span class="db v">VIEW</span></div>
+        <div class="di" onclick="sw('sat')"><div><div class="dn">Satellite Sleeve — Four Macro Scenarios</div><div class="dm">Bad / normal / good / exceptional · Two-factor correlated model</div></div><span class="db v">VIEW</span></div>
+        <div class="di" onclick="dl('premier2_methodology_memo.docx')"><div><div class="dn">Premier II — Return Modelling Methodology</div><div class="dm">FoF Monte Carlo · Binary scenario model · Two-factor model · Limitations</div></div><span class="db d">DOWNLOAD</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const PW = 'premier2026';
+let simLoaded = false, satLoaded = false, fullsimLoaded = false;
+
+function auth(){
+  if(document.getElementById('pw').value === PW){
+    document.getElementById('gate').style.display='none';
+    document.getElementById('app').style.display='block';
+  } else {
+    document.getElementById('ge').textContent='Incorrect access code.';
+    document.getElementById('pw').value='';
+    document.getElementById('pw').focus();
+  }
+}
+
+function sw(id){
+  document.querySelectorAll('.pg,.pgf').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  const pg=document.getElementById('pg-'+id);
+  if(pg) pg.classList.add('on');
+  document.querySelectorAll('.ni').forEach(n=>{
+    if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+id+"'"))
+      n.classList.add('on');
+  });
+  // Lazy load iframes
+  if(id==='sim'&&!simLoaded){
+    document.getElementById('sim-frame').src='premier2_binary_model.html';
+    simLoaded=true;
+  }
+  if(id==='fullsim'&&!fullsimLoaded){
+    document.getElementById('fullsim-frame').src='premier2_return_simulator.html';
+    fullsimLoaded=true;
+  }
+  if(id==='sat'&&!satLoaded){
+    document.getElementById('sat-frame').src='premier2_satellite_comparison.html';
+    satLoaded=true;
+  }
+  window.scrollTo(0,0);
+}
+
+function dl(f){
+  const a=document.createElement('a');
+  a.href=f; a.download=f; a.click();
+}
+</script>
+</body>
+</html>

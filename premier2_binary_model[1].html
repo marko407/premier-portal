@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Premier II — Satellite Binary Model</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:#fafaf8;color:#1a1a2e;padding:32px 40px;max-width:960px;margin:0 auto;}
+h1{font-size:20px;font-weight:500;margin-bottom:4px;}
+.sub{font-size:12px;color:#6b7280;margin-bottom:28px;}
+
+.controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:28px;}
+.ctrl{background:#fff;border:0.5px solid #e8e4dc;border-radius:9px;padding:16px;}
+.ctrl-lbl{font-size:9px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;color:#6b7280;margin-bottom:10px;}
+select,input[type=range]{width:100%;font-size:11px;}
+select{padding:6px 8px;border:0.5px solid #ddd;border-radius:5px;background:#fff;color:#1a1a2e;outline:none;cursor:pointer;}
+input[type=range]{height:4px;border-radius:2px;background:#ddd;outline:none;-webkit-appearance:none;cursor:pointer;margin-top:6px;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#2563eb;cursor:pointer;}
+.sh{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;}
+.sh span:first-child{color:#6b7280;}
+.ib{margin-top:8px;font-size:10px;color:#6b7280;line-height:1.5;background:#f5f5f0;border-radius:5px;padding:7px 9px;}
+
+/* SCENARIO CARDS */
+.tree{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px;}
+.sn{border-radius:9px;padding:14px 12px;border:0.5px solid #ddd;}
+.sn.s1{background:#fff5f5;border-color:#fca5a5;}
+.sn.s2{background:#f0f9ff;border-color:#93c5fd;}
+.sn.s3{background:#f0fdf4;border-color:#6ee7b7;}
+.sn.s4{background:#f5f3ff;border-color:#c4b5fd;}
+.sp{font-size:22px;font-weight:700;margin-bottom:3px;}
+.sp.r{color:#dc2626;}.sp.b{color:#2563eb;}.sp.g{color:#059669;}.sp.p{color:#7c3aed;}
+.sname{font-size:9px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;color:#374151;}
+.sdesc{font-size:10px;color:#6b7280;line-height:1.45;margin-bottom:7px;}
+.sblend{font-size:13px;font-weight:600;color:#1a1a2e;}
+.ssub{font-size:9px;color:#6b7280;margin-top:2px;}
+
+/* CHARTS */
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.ch{background:#fff;border:0.5px solid #e8e4dc;border-radius:9px;padding:16px;}
+.ch-lbl{font-size:10px;font-weight:500;color:#6b7280;margin-bottom:10px;}
+.ch-wrap{position:relative;height:200px;}
+
+/* STATS ROW */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:20px;}
+.stat{background:#fff;border:0.5px solid #e8e4dc;border-radius:7px;padding:10px;text-align:center;}
+.sl{font-size:9px;color:#6b7280;margin-bottom:3px;}
+.sv{font-size:18px;font-weight:500;}
+.sv.b{color:#2563eb;}.sv.g{color:#059669;}.sv.n{color:#374151;}
+
+.notice{font-size:10px;color:#92510a;background:#fffbf0;border:0.5px solid #fcd34d;border-radius:6px;padding:9px 12px;line-height:1.6;margin-bottom:16px;}
+.foot{font-size:9px;color:#9ca3af;line-height:1.65;padding:10px 14px;background:#fff;border:0.5px solid #e8e4dc;border-radius:8px;}
+.leg{display:flex;gap:12px;margin-bottom:10px;font-size:10px;color:#6b7280;flex-wrap:wrap;}
+.leg span{display:flex;align-items:center;gap:4px;}
+.ld{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<h1>Premier II — Satellite Sleeve · Binary Model</h1>
+<p class="sub">Six concentrated positions · Series A/B entry · Four discrete scenarios · No false Monte Carlo precision</p>
+
+<div class="controls">
+  <div class="ctrl">
+    <div class="ctrl-lbl">FoF sleeve vintage</div>
+    <select id="vin" onchange="run()">
+      <option value="opt">Optimistic — 2017 Carta (FoF net ~3.30x)</option>
+      <option value="rea" selected>Realistic — 2020 Carta (FoF net ~1.10x)</option>
+      <option value="con">Conservative — 2021 Carta (FoF net ~0.95x)</option>
+    </select>
+    <div class="ib">FoF contribution (×70%): <strong id="fofDisp">—</strong></div>
+  </div>
+  <div class="ctrl">
+    <div class="ctrl-lbl">Selection edge (per position)</div>
+    <select id="edg" onchange="run()">
+      <option value="none">No edge — pure Series A/B base rates</option>
+      <option value="mod" selected>Modest — Premier GP relationships</option>
+      <option value="str">Strong — highly validated (hypothetical)</option>
+    </select>
+    <div class="ib" id="rateDisp">—</div>
+  </div>
+  <div class="ctrl">
+    <div class="ctrl-lbl">Satellite gross target (avg at hit)</div>
+    <div class="sh"><span>Strong hit avg gross</span><span id="stv">10x</span></div>
+    <input type="range" min="5" max="20" value="10" id="strong" oninput="run()">
+    <div class="sh" style="margin-top:8px"><span>Extraordinary hit avg gross</span><span id="extv">25x</span></div>
+    <input type="range" min="15" max="50" value="25" id="extra" oninput="run()">
+    <div class="ib">Net after Premier II 10% carry on profits · no SPV carry</div>
+  </div>
+</div>
+
+<div class="notice" id="noticeBox">—</div>
+
+<div class="tree" id="treeEl"></div>
+
+<div class="stats" id="statsEl"></div>
+
+<div class="charts">
+  <div class="ch">
+    <div class="ch-lbl">Probability by scenario</div>
+    <div class="ch-wrap"><canvas id="probChart" role="img" aria-label="Bar chart showing probability of each satellite scenario"></canvas></div>
+  </div>
+  <div class="ch">
+    <div class="ch-lbl">Blended TVPI by scenario</div>
+    <div class="ch-wrap"><canvas id="blendChart" role="img" aria-label="Bar chart showing blended TVPI for each scenario"></canvas></div>
+  </div>
+</div>
+
+<div class="leg">
+  <span><span class="ld" style="background:#fca5a5"></span>No hit — satellite drags</span>
+  <span><span class="ld" style="background:#93c5fd"></span>One strong hit</span>
+  <span><span class="ld" style="background:#6ee7b7"></span>One extraordinary hit</span>
+  <span><span class="ld" style="background:#c4b5fd"></span>Multiple hits</span>
+</div>
+
+<div class="foot">
+  Series A/B base rates: no edge (loss 38% · 1–2x 22% · 2–5x 20% · 5–15x 13% · 15x+ 7%) · modest edge (loss 30% · 1–2x 20% · 2–5x 20% · 5–15x 18% · 15x+ 12%) · strong edge (loss 22% · 1–2x 18% · 2–5x 20% · 5–15x 22% · 15x+ 18%). All figures net of Premier II 1%/10%. Satellite positions assumed independent — see two-factor model for correlation-adjusted view. Illustrative only · Not a forecast · Decile Capital Premier II · May 2026.
+</div>
+
+<script>
+const FOF = {opt:3.30, rea:1.10, con:0.95};
+const RATES = {
+  none: [0.38,0.22,0.20,0.13,0.07],
+  mod:  [0.30,0.20,0.20,0.18,0.12],
+  str:  [0.22,0.18,0.20,0.22,0.18]
+};
+// Net midpoints for each bucket (after 10% carry on profits)
+function satNet(gross){ return gross>1 ? gross-(gross-1)*0.10-0.05 : Math.max(gross-0.05,0); }
+const BUCKET_GROSS = [0.40, 1.35, 2.95, null, null]; // loss, 1-2x, 2-5x; strong/extra set by sliders
+
+let pC=null, bC=null;
+
+function run(){
+  const vin=document.getElementById('vin').value;
+  const edg=document.getElementById('edg').value;
+  const strongG=+document.getElementById('strong').value;
+  const extraG=+document.getElementById('extra').value;
+  document.getElementById('stv').textContent=strongG+'x';
+  document.getElementById('extv').textContent=extraG+'x';
+
+  const fofNet=FOF[vin];
+  const fofC=fofNet*0.70;
+  document.getElementById('fofDisp').textContent=fofNet.toFixed(2)+'x net · contribution '+fofC.toFixed(2)+'x';
+
+  const rates=RATES[edg];
+  document.getElementById('rateDisp').textContent=
+    `Loss ${(rates[0]*100).toFixed(0)}% · 1–2x ${(rates[1]*100).toFixed(0)}% · 2–5x ${(rates[2]*100).toFixed(0)}% · 5–15x ${(rates[3]*100).toFixed(0)}% · 15x+ ${(rates[4]*100).toFixed(0)}%`;
+
+  const n=6;
+  const pHit=rates[3]+rates[4];
+  const pStrong=rates[3];
+  const pExtra=rates[4];
+
+  // No-hit conditional satellite avg
+  const noHitW=rates[0]+rates[1]+rates[2];
+  const satNoHit=(rates[0]*satNet(BUCKET_GROSS[0])+rates[1]*satNet(BUCKET_GROSS[1])+rates[2]*satNet(BUCKET_GROSS[2]))/noHitW;
+
+  // Scenario probabilities
+  const pNo=Math.pow(1-pHit,n);
+  const pOne=n*pStrong*Math.pow(1-pHit,n-1);
+  const pExtOne=n*pExtra*Math.pow(1-pHit,n-1);
+  const pMulti=Math.max(1-pNo-pOne-pExtOne,0);
+
+  // Satellite averages per scenario
+  const satAvgNo=satNoHit;
+  const satAvgOne=(satNet(strongG)*1+satNoHit*5)/6;
+  const satAvgExt=(satNet(extraG)*1+satNoHit*5)/6;
+  const satAvgMulti=(satNet(extraG)*2+satNet(strongG)*1+satNoHit*3)/6;
+
+  // Blended TVPI per scenario
+  const bNo=fofC+satAvgNo*0.30;
+  const bOne=fofC+satAvgOne*0.30;
+  const bExt=fofC+satAvgExt*0.30;
+  const bMulti=fofC+satAvgMulti*0.30;
+
+  // Weighted mean
+  const wMean=pNo*bNo+pOne*bOne+pExtOne*bExt+pMulti*bMulti;
+  // Weighted median — approximate from scenario weights
+  // Find scenario containing 50th percentile
+  let cum=0; let wMed=bNo;
+  const scens=[{p:pNo,b:bNo},{p:pOne,b:bOne},{p:pExtOne,b:bExt},{p:pMulti,b:bMulti}];
+  for(const s of scens){cum+=s.p;if(cum>=0.5){wMed=s.b;break;}}
+
+  // Drag/lift
+  const dragP=(pNo*100).toFixed(0);
+  const liftP=((pOne+pExtOne+pMulti)*100).toFixed(0);
+  const greatP=((pExtOne+pMulti)*100).toFixed(0);
+
+  document.getElementById('noticeBox').innerHTML=
+    `In <strong>${dragP}%</strong> of outcomes the satellite reduces blended returns below what the FoF alone would deliver. It adds value in <strong>${liftP}%</strong> of outcomes — and transforms the fund in <strong>${greatP}%</strong>. Six positions behave like ~2 effective independent bets due to shared GP network, market cycle, and exit window.`;
+
+  // Scenario cards
+  const scenData=[
+    {p:pNo,  cls:'s1',pc:'r',name:'No meaningful hit',   desc:`All 6 below 5x net. Avg sat return ~${satAvgNo.toFixed(1)}x. Satellite drags blended below FoF.`, b:bNo,  bsub:`FoF alone would give ${fofNet.toFixed(2)}x`},
+    {p:pOne, cls:'s2',pc:'b',name:'One strong hit',      desc:`One position ~${strongG}x gross. Five positions modest/flat. Sat avg ~${satAvgOne.toFixed(1)}x.`, b:bOne, bsub:'Modest uplift above FoF'},
+    {p:pExtOne,cls:'s3',pc:'g',name:'One extraordinary hit',desc:`One position ~${extraG}x gross. Five positions modest/flat. Sat avg ~${satAvgExt.toFixed(1)}x.`, b:bExt, bsub:'Meaningful uplift'},
+    {p:pMulti,cls:'s4',pc:'p',name:'Multiple hits',      desc:`2+ positions above 5x. Incl. at least one extraordinary. Sat avg ~${satAvgMulti.toFixed(1)}x.`, b:bMulti,bsub:'Fund-maker scenario'},
+  ];
+
+  document.getElementById('treeEl').innerHTML=scenData.map(s=>`
+    <div class="sn ${s.cls}">
+      <div class="sp ${s.pc}">${(s.p*100).toFixed(0)}%</div>
+      <div class="sname">${s.name}</div>
+      <div class="sdesc">${s.desc}</div>
+      <div class="sblend">Blended ${s.b.toFixed(2)}x</div>
+      <div class="ssub">${s.bsub}</div>
+    </div>`).join('');
+
+  // Stats row
+  document.getElementById('statsEl').innerHTML=`
+    <div class="stat"><div class="sl">Weighted mean</div><div class="sv n">${wMean.toFixed(2)}x</div></div>
+    <div class="stat"><div class="sl">Approx. median</div><div class="sv n">${wMed.toFixed(2)}x</div></div>
+    <div class="stat"><div class="sl">P(blended ≥3.1x)</div><div class="sv b">${((pOne+pExtOne+pMulti)*100).toFixed(0)}%</div></div>
+    <div class="stat"><div class="sl">P(blended ≥${bExt.toFixed(1)}x)</div><div class="sv g">${((pExtOne+pMulti)*100).toFixed(0)}%</div></div>
+    <div class="stat"><div class="sl">P(satellite adds value)</div><div class="sv g">${liftP}%</div></div>`;
+
+  // Charts
+  const labels=['No hit','One strong','One extraordinary','Multiple hits'];
+  const probs=scenData.map(s=>+(s.p*100).toFixed(1));
+  const blends=scenData.map(s=>+s.b.toFixed(2));
+  const colors=['rgba(252,165,165,0.85)','rgba(147,197,253,0.85)','rgba(110,231,183,0.85)','rgba(196,181,253,0.85)'];
+
+  if(pC)pC.destroy();
+  pC=new Chart(document.getElementById('probChart'),{type:'bar',
+    data:{labels,datasets:[{data:probs,backgroundColor:colors,borderWidth:0,borderRadius:4,barPercentage:0.6}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw.toFixed(1)}% of outcomes`}}},
+      scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#6b7280'}},
+              y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{font:{size:10},color:'#6b7280',callback:v=>v+'%'},
+                 title:{display:true,text:'Probability',font:{size:9},color:'#6b7280'}}}}});
+
+  if(bC)bC.destroy();
+  bC=new Chart(document.getElementById('blendChart'),{type:'bar',
+    data:{labels,datasets:[
+      {data:blends,backgroundColor:colors,borderWidth:0,borderRadius:4,barPercentage:0.6},
+      {type:'line',data:[fofNet,fofNet,fofNet,fofNet],borderColor:'#374151',borderWidth:1.5,
+       borderDash:[4,3],pointRadius:0,label:'FoF alone'}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,position:'top',labels:{font:{size:9},boxWidth:10,color:'#6b7280'}},
+               tooltip:{callbacks:{label:c=>c.dataset.label==='FoF alone'?` FoF alone: ${fofNet.toFixed(2)}x`:` Blended: ${c.raw.toFixed(2)}x`}}},
+      scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#6b7280'}},
+              y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{font:{size:10},color:'#6b7280',callback:v=>v+'x'},
+                 title:{display:true,text:'Blended TVPI',font:{size:9},color:'#6b7280'}}}}});
+}
+
+run();
+</script>
+</body>
+</html>

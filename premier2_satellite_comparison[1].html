@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Premier II — Satellite Sleeve · Six Concentrated Bets</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#fafaf8; font-family:'Inter',sans-serif; color:#1a1a2e; padding:36px 44px; max-width:1100px; margin:0 auto; }
+
+.top-label { font-size:9px; font-weight:600; letter-spacing:0.2em; text-transform:uppercase; color:#9ca3af; margin-bottom:14px; }
+
+.scenarios-grid { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px; margin-bottom:28px; }
+
+.scen-col { }
+.scen-header { font-size:9px; font-weight:600; letter-spacing:0.15em; text-transform:uppercase; color:#6b7280; margin-bottom:10px; padding-bottom:6px; border-bottom:1.5px solid #e8e4dc; }
+.scen-header.s1 { border-color:#fca5a5; }
+.scen-header.s2 { border-color:#93c5fd; }
+.scen-header.s3 { border-color:#6ee7b7; }
+.scen-header.s4 { border-color:#c4b5fd; }
+
+.stat-row { display:flex; gap:8px; margin-bottom:10px; }
+.stat-box { flex:1; background:#fff; border:0.5px solid #e8e4dc; border-radius:7px; padding:9px 8px; text-align:center; }
+.stat-lbl { font-size:9px; color:#9ca3af; margin-bottom:3px; }
+.stat-val { font-size:17px; font-weight:600; }
+.stat-val.red { color:#dc2626; }
+.stat-val.blue { color:#2563eb; }
+.stat-val.green { color:#059669; }
+.stat-val.purple { color:#7c3aed; }
+.stat-val.neutral { color:#374151; }
+
+.prob-badge { display:inline-block; font-size:18px; font-weight:700; }
+
+.chart-wrap { position:relative; height:180px; margin-bottom:10px; }
+
+.scen-desc { font-size:10px; color:#6b7280; line-height:1.55; background:#fff; border:0.5px solid #e8e4dc; border-radius:7px; padding:8px 10px; }
+.scen-desc strong { color:#374151; font-weight:600; }
+
+/* Bottom insight row */
+.insights { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-top:20px; }
+.insight-card { background:#fff; border:0.5px solid #e8e4dc; border-radius:9px; padding:14px 16px; }
+.insight-title { font-size:11px; font-weight:600; color:#1a1a2e; margin-bottom:6px; }
+.insight-title.blue { color:#2563eb; }
+.insight-title.green { color:#059669; }
+.insight-body { font-size:11px; color:#4b5563; line-height:1.6; }
+
+.footnote { font-size:9px; color:#9ca3af; line-height:1.65; margin-top:16px; padding:10px 14px; background:#fff; border:0.5px solid #e8e4dc; border-radius:8px; }
+
+.legend { display:flex; gap:14px; margin-bottom:14px; font-size:10px; color:#6b7280; }
+.legend span { display:flex; align-items:center; gap:5px; }
+.ld { width:10px; height:10px; border-radius:2px; }
+</style>
+</head>
+<body>
+
+<div class="top-label">Premier II · Satellite Sleeve · Six Concentrated Bets · Two-Factor Model · Series A/B Entry · Modest Premier GP Selection Edge</div>
+
+<div class="legend">
+  <span><span class="ld" style="background:#bfdbfe"></span>Satellite drags blended (below FoF alone)</span>
+  <span><span class="ld" style="background:#2563eb"></span>Satellite adds value (above FoF)</span>
+  <span><span class="ld" style="background:#059669"></span>Above 5x — outlier territory</span>
+</div>
+
+<div class="scenarios-grid" id="scenGrid"></div>
+
+<div class="insights">
+  <div class="insight-card">
+    <div class="insight-title">In most outcomes the satellite is a drag</div>
+    <div class="insight-body">Six positions at Series A/B entry produce zero extraordinary outcomes in roughly <strong id="dragPct">—</strong> of simulations. When no position fires the satellite sleeve reduces blended returns below what the FoF alone would have delivered. Note: mean is always higher than median — the gap reflects the power law right tail pulling the average up. The median is what most LPs experience. The mean is what the fund reports.</div>
+  </div>
+  <div class="insight-card">
+    <div class="insight-title blue">Macro matters as much as selection</div>
+    <div class="insight-body">All six positions share the same exit window. The two-factor model draws one market factor per simulation — applied to all positions simultaneously. A closed IPO/M&A market in 2030–2035 hurts all six at once. Six positions behave like <strong>~2 effective independent bets</strong> not six.</div>
+  </div>
+  <div class="insight-card">
+    <div class="insight-title green">One real outlier cannot be modelled</div>
+    <div class="insight-body">The 5x+ zone requires one position entered very early — before broad market pricing — and held through a full liquidity cycle. The model's <strong id="greatPct">—</strong> probability is a lower bound. The true probability depends on whether that outlier materialises. It cannot be planned. Premier I's xAI at 7.75x is proof it exists.</div>
+  </div>
+</div>
+
+<div class="footnote" id="footNote"></div>
+
+<script>
+const BKTS=[0,1,1.5,2,2.5,3,3.5,4,4.5,5,6,8,15];
+const LBLS=['0–1x','1–1.5x','1.5–2x','2–2.5x','2.5–3x','3–3.5x','3.5–4x','4–4.5x','4.5–5x','5–6x','6–8x','8x+'];
+
+// Series A/B rates — modest Premier edge
+const RATES=[0.30,0.20,0.20,0.18,0.12];
+const SAT_NET_MID=[0.40,1.35,2.95,7.60,19.50];
+const pHit=RATES[3]+RATES[4];
+const n=6;
+
+function lu(lo,hi){if(lo<=0)lo=0;if(hi<=lo)hi=lo+0.01;if(lo===0)return Math.random()*hi;return Math.exp(Math.random()*(Math.log(hi)-Math.log(lo))+Math.log(lo));}
+
+function drawMarketFactor(mktRegime){
+  // mktRegime: 'bad'|'normal'|'good'
+  if(mktRegime==='bad')   return lu(0.05,0.45);
+  if(mktRegime==='good')  return lu(1.5,4.0);
+  return lu(0.7,1.5); // normal
+}
+
+function drawSatPos(mkt){
+  const r=Math.random();let c=0;let bkt=0;
+  const lo=[0,0.3,0.5,0.8,1.0];
+  const hi=[1.5,2.5,8,20,50];
+  for(let k=0;k<RATES.length;k++){c+=RATES[k];if(r<=c){bkt=k;break;}}
+  const gross=lu(lo[bkt]*SAT_NET_MID[bkt],hi[bkt]);
+  const adj=Math.max(gross*mkt,0);
+  return adj>1?adj-(adj-1)*0.10-0.05:Math.max(adj-0.05,0);
+}
+
+// FoF net for each scenario
+const FOF={
+  bad:   0.85,  // bad macro compresses FoF exits too
+  normal:1.57,  // 3/7/10 mix · 2020 Carta · 1%/10%
+  good:  2.10,  // good macro lifts FoF exits
+  great: 3.10   // optimistic 7/7/6 · 2017 vintage
+};
+
+// Four satellite scenarios defined analytically
+const satNoHit=(RATES[0]*SAT_NET_MID[0]+RATES[1]*SAT_NET_MID[1]+RATES[2]*SAT_NET_MID[2])/(RATES[0]+RATES[1]+RATES[2]);
+const pNo=Math.pow(1-pHit,n);
+const pOne=n*RATES[3]*Math.pow(1-pHit,n-1);
+const pExtOne=n*RATES[4]*Math.pow(1-pHit,n-1);
+const pMulti=1-pNo-pOne-pExtOne;
+
+// Run Monte Carlo for each scenario using regime-specific market factors
+function runSim(mktRegime, fofNet, N){
+  const res=[];
+  for(let i=0;i<N;i++){
+    const fn=Math.max(fofNet+(Math.random()-0.5)*0.5,0.2);
+    const mkt=drawMarketFactor(mktRegime);
+    let sat=0; for(let j=0;j<6;j++) sat+=drawSatPos(mkt);
+    res.push(fn*0.70+(sat/6)*0.30);
+  }
+  return res.sort((a,b)=>a-b);
+}
+
+const N=15000;
+const sims={
+  bad:    runSim('bad',   FOF.bad,    N),
+  normal: runSim('normal',FOF.normal, N),
+  good:   runSim('good',  FOF.good,   N),
+  great:  runSim('good',  FOF.great,  N),
+};
+
+function pct(res,thresh){return(res.filter(r=>r>=thresh).length/res.length*100).toFixed(0)+'%';}
+function med(res){return res[Math.floor(res.length/2)].toFixed(2)+'x';}
+
+const configs=[
+  {key:'bad',   cls:'s1', valCls:'red',    prob:'~20%', label:'BAD MACRO',
+   hdr:'Bad exit environment · Normal FoF selection',
+   desc:'IPO/M&A market closed or severely compressed in 2030–2035. All six positions exit below potential. Even strong companies cannot realise full value. FoF sleeve also affected.',
+   fofNote:'FoF net ~0.85x · macro headwind on exits'},
+  {key:'normal',cls:'s2', valCls:'blue',   prob:'~60%', label:'NORMAL MACRO',
+   hdr:'Normal exit environment · Realistic FoF selection (3/5/10/2)',
+   desc:'Typical venture exit market. Most satellite positions return near cost or modest amounts. One strong outcome (5–15x) possible but not guaranteed. FoF performs as expected.',
+   fofNote:'FoF net ~1.57x · 3/7/10 mix · 2020 Carta'},
+  {key:'good',  cls:'s3', valCls:'green',  prob:'~15%', label:'GOOD MACRO',
+   hdr:'Good exit environment · Strong FoF selection',
+   desc:'Active IPO/M&A market lifts all six positions. One extraordinary outcome (15x+) becomes realistic. FoF managers also realise exits at better valuations. This is where 5x becomes achievable.',
+   fofNote:'FoF net ~2.10x · good macro lifts exits'},
+  {key:'great', cls:'s4', valCls:'purple', prob:'~5%',  label:'EXCEPTIONAL',
+   hdr:'Great macro · Optimistic 7/7/6 FoF mix · One real outlier',
+   desc:'Everything fires simultaneously. Hall-of-famer FoF vintage. One satellite position at 30x+ entered very early. This scenario cannot be modelled or planned — it requires a perfect storm.',
+   fofNote:'FoF net ~3.10x · 7/7/6 mix · 2017 Carta best vintage'},
+];
+
+// Build scene grid
+const grid=document.getElementById('scenGrid');
+configs.forEach((cfg,ci)=>{
+  const res=sims[cfg.key];
+  const medVal=med(res);
+  const meanVal=(res.reduce((a,b)=>a+b,0)/res.length).toFixed(2)+'x';
+  const p3=pct(res,3.1);
+  const p5=pct(res,5);
+
+  // Chart data
+  const d=[];
+  for(let i=0;i<BKTS.length-1;i++)d.push(+(res.filter(r=>r>=BKTS[i]&&r<BKTS[i+1]).length/N*100).toFixed(1));
+  d.push(+(res.filter(r=>r>=15).length/N*100).toFixed(1));
+  const fofNet=FOF[cfg.key];
+  const cols=d.map((_,i)=>BKTS[i]>=5?'#059669':BKTS[i]>=fofNet?'#2563eb':'#bfdbfe');
+
+  const col=document.createElement('div');
+  col.className='scen-col';
+  col.innerHTML=`
+    <div class="scen-header ${cfg.cls}">${cfg.label} <span style="font-weight:300;color:#9ca3af">· ${cfg.prob} of outcomes</span></div>
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-lbl">Median</div><div class="stat-val ${cfg.valCls}">${medVal}</div></div>
+      <div class="stat-box"><div class="stat-lbl">Mean</div><div class="stat-val ${cfg.valCls}">${meanVal}</div></div>
+      <div class="stat-box"><div class="stat-lbl">P(≥3.1x)</div><div class="stat-val neutral">${p3}</div></div>
+      <div class="stat-box"><div class="stat-lbl">P(≥5x)</div><div class="stat-val neutral">${p5}</div></div>
+    </div>
+    <div class="chart-wrap"><canvas id="c${ci}"></canvas></div>
+    <div class="scen-desc"><strong>${cfg.hdr}</strong><br>${cfg.desc}<br><br><em>${cfg.fofNote}</em></div>`;
+  grid.appendChild(col);
+
+  new Chart(document.getElementById('c'+ci),{type:'bar',
+    data:{labels:LBLS,datasets:[{data:d,backgroundColor:cols,borderWidth:0,borderRadius:2,barPercentage:0.82,categoryPercentage:0.82}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw.toFixed(1)}%`}}},
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:8},color:'#9ca3af',maxRotation:30}},
+        y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:8},color:'#9ca3af',callback:v=>v+'%'}}
+      }
+    }
+  });
+});
+
+// Insight numbers
+document.getElementById('dragPct').textContent=(pNo*100).toFixed(0)+'%';
+document.getElementById('greatPct').textContent=((pExtOne+pMulti)*100).toFixed(0)+'%';
+
+document.getElementById('footNote').innerHTML=
+  `<strong>Model:</strong> Two-factor satellite model · market factor drawn once per simulation applied to all 6 positions · Series A/B entry · modest Premier GP selection edge (loss rate 30%, extraordinary 12% per position) · Premier II 1%/10% applied throughout. `+
+  `<strong>FoF sleeve:</strong> Weighted gross from Carta Q4 2025 $1M–$10M net TVPI after underlying 2%/20%, then Premier II 1%/10% applied. `+
+  `<strong>Market regimes:</strong> Bad (~20% probability) · Normal (~60%) · Good (~15%) · Exceptional (~5%) — based on historical venture exit environment distribution. `+
+  `Illustrative only. Not a forecast or guarantee of future performance. Decile Capital Premier II · May 2026.`;
+</script>
+</body>
+</html>
